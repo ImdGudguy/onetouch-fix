@@ -13,7 +13,7 @@ import {
   Shield, FileCheck, Settings2, MonitorSmartphone, ShieldCheck, ShieldAlert,
   Clock, ZapOff, ActivityIcon, Layers, Circle, RadioTower, ChevronDown, Filter,
   Database, Cpu as CpuIcon, HardDrive as HardDriveIcon, Clock as ClockIcon,
-  Globe, Download, Cog as CogIcon, FileText, Wifi
+  Globe, Download, Cog as CogIcon, FileText, Wifi, LogOut
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, Tooltip } from 'recharts';
 
@@ -1405,6 +1405,19 @@ export default function IntelliFixApp() {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [pendingFix, setPendingFix] = useState<{ actionType: string; card: RemediationCard | null } | null>(null);
   const [privacyMode, setPrivacyMode] = useState(false);
+  const [authUser, setAuthUser] = useState('');
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d?.username) setAuthUser(d.username); })
+      .catch(() => {});
+  }, []);
+
+  const logout = async () => {
+    try { await fetch('/api/auth/logout', { method: 'POST' }); } catch {}
+    window.location.assign('/login');
+  };
 
   // Remediation cards - 15 Enterprise Actions
   const remediationCards: RemediationCard[] = [
@@ -2055,6 +2068,12 @@ export default function IntelliFixApp() {
 
                 <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setIsSettingsOpen(true)} className="p-2.5 rounded-xl hover:bg-white/5">
                   <Settings className="w-5 h-5 text-white/70" />
+                </motion.button>
+
+                {authUser && <span className="text-xs text-white/50 px-1 hidden md:block">{authUser}</span>}
+                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={logout} title="Sign out"
+                  className="p-2.5 rounded-xl hover:bg-white/5">
+                  <LogOut className="w-5 h-5 text-white/70" />
                 </motion.button>
               </div>
             </div>

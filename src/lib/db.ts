@@ -34,6 +34,12 @@ function open(): DatabaseSync {
       output     TEXT,
       completedAt TEXT
     );
+    CREATE TABLE IF NOT EXISTS users (
+      username  TEXT PRIMARY KEY,
+      salt      TEXT NOT NULL,
+      hash      TEXT NOT NULL,
+      createdAt TEXT NOT NULL
+    );
   `);
   return db;
 }
@@ -108,6 +114,22 @@ export function recordResult(result: any) {
   if (result?.commandId) {
     db().prepare('UPDATE commands SET status = ? WHERE id = ?').run(result.success ? 'completed' : 'failed', result.commandId);
   }
+}
+
+// ---- users (auth) --------------------------------------------------------
+export interface UserRow { username: string; salt: string; hash: string; createdAt: string; }
+
+export function getUser(username: string): UserRow | undefined {
+  return db().prepare('SELECT username, salt, hash, createdAt FROM users WHERE username = ?').get(username);
+}
+
+export function createUser(username: string, salt: string, hash: string) {
+  db().prepare('INSERT INTO users (username, salt, hash, createdAt) VALUES (?, ?, ?, ?)')
+    .run(username, salt, hash, new Date().toISOString());
+}
+
+export function userCount(): number {
+  return db().prepare('SELECT COUNT(*) AS n FROM users').get().n as number;
 }
 
 export function listHistory(limit = 20) {

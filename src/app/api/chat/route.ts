@@ -8,7 +8,8 @@ import { REMEDIATIONS, isKnownRemediation } from '@/lib/remediations';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const MODEL = process.env.ANTHROPIC_MODEL || 'claude-opus-4-8';
+// Chat is fixed to Claude Sonnet 4.6 — do not make this configurable.
+const MODEL = 'claude-sonnet-4-6';
 
 // Stable system instructions — cached across requests (see shared/prompt-caching).
 const SYSTEM_INSTRUCTIONS = `You are IntelliFix AI, the in-product assistant for an enterprise endpoint-intelligence platform.

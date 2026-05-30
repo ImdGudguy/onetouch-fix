@@ -26,14 +26,17 @@ When `INTELLIFIX_AGENT_TOKEN` is set, every `/api/agent/*` request must present 
 ### 4. Named-pipe ACL
 The consent pipe (`IntelliFixConsent`) is created with an explicit ACL granting LocalSystem full control and authenticated users read/write — so the user-session tray can connect to the SYSTEM-hosted pipe without exposing it more broadly.
 
-### 5. No hardcoded secrets
+### 5. Dashboard authentication
+The web app is gated by username/password auth. Users are stored in SQLite with **scrypt-hashed** passwords (per-user random salt, never plaintext). Sessions are **HMAC-signed HTTP-only cookies** (signed with `SESSION_SECRET`), verified in Edge middleware so every page and API — except the auth endpoints and the token-authed agent ingest channel — requires a valid session. Set `SESSION_SECRET` in production (`openssl rand -hex 32`).
+
+### 6. No hardcoded secrets
 All secrets come from the environment (`.env.example` documents every variable). `.gitignore` excludes `.env*`, the SQLite store, agent build output, and node_modules.
 
 ## Hardening checklist (before production / internet exposure)
 
 - [ ] **Set `INTELLIFIX_AGENT_TOKEN`** (e.g. `openssl rand -hex 32`) and install agents with `-AgentToken`.
 - [ ] **Terminate TLS** at a reverse proxy (nginx/Caddy/Cloud LB); never expose plain HTTP publicly.
-- [ ] **Authenticate the dashboard** — add SSO/auth in front of the web app and the `remediation/execute` route. (Today the dashboard is unauthenticated; fine for a single-operator/LAN demo, not for production.)
+- [x] **Dashboard authentication** — built in (username/password, scrypt + signed session cookie). Set `SESSION_SECRET`. For enterprise, consider fronting it with SSO/OIDC as well.
 - [ ] **Restrict `/api/agent/*`** to known device tokens; rotate tokens on offboarding.
 - [ ] **Pin the backend URL** the agent talks to (HTTPS), and validate the cert.
 - [ ] **Review the remediation allow-list** against your change-control policy; remove any you don't want operators triggering.
