@@ -1,0 +1,35 @@
+# ---- secrets / env ----
+.env
+.env.local
+.env*.local
+*.pem
+*.key
+
+# ---- node / next ----
+node_modules/
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# ---- local data (SQLite store, runtime snapshots) ----
+data/
+*.db
+*.db-journal
+*.sqlite
+
+# ---- .NET agent build output ----
+agent/**/bin/
+agent/**/obj/
+agent/dist/
+agent/*.log
+
+# ---- logs / misc ----
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

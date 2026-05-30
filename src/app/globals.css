@@ -1,0 +1,234 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --neon-cyan: #00e5ff;
+  --neon-purple: #a855f7;
+  --space-black: #0a0a12;
+  --space-dark: #12121a;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background-color: var(--space-black);
+  color: #e2e8f0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 229, 255, 0.25);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 229, 255, 0.4);
+}
+
+/* Glassmorphism surface */
+.glass {
+  background: rgba(18, 18, 26, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+}
+
+/* Cyan text glow */
+.text-glow-cyan {
+  color: #00e5ff;
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.5);
+}
+
+/* Remove number input spinners on range tracks etc. */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+}
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #00e5ff;
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
+  cursor: pointer;
+}
+input[type='range']::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: none;
+  border-radius: 50%;
+  background: #00e5ff;
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
+  cursor: pointer;
+}
+
+/* Chat typing indicator */
+@keyframes typing {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* ===================================================================== */
+/*  FUTURISTIC FX — animated backdrop, holo panels, scanlines, glow      */
+/* ===================================================================== */
+
+/* Drifting aurora / mesh background */
+@keyframes aurora {
+  0%   { transform: translate3d(-6%, -4%, 0) scale(1);   }
+  50%  { transform: translate3d(6%, 5%, 0)  scale(1.15); }
+  100% { transform: translate3d(-6%, -4%, 0) scale(1);   }
+}
+.fx-aurora {
+  position: absolute;
+  inset: -25%;
+  background:
+    radial-gradient(38% 38% at 18% 22%, rgba(0,229,255,0.20), transparent 70%),
+    radial-gradient(42% 42% at 82% 28%, rgba(168,85,247,0.20), transparent 70%),
+    radial-gradient(40% 40% at 60% 88%, rgba(16,185,129,0.12), transparent 70%),
+    radial-gradient(30% 30% at 40% 55%, rgba(236,72,153,0.10), transparent 70%);
+  filter: blur(40px);
+  animation: aurora 20s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Dark vignette for depth */
+.fx-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 90% at 50% 0%, transparent 55%, rgba(0,0,0,0.55) 100%);
+}
+
+/* Animated neon beam sweeping the very top edge */
+@keyframes beamSlide {
+  0% { transform: translateX(-30%); opacity: 0; }
+  20%, 80% { opacity: 1; }
+  100% { transform: translateX(130%); opacity: 0; }
+}
+.fx-beam {
+  position: absolute;
+  top: 0; left: 0;
+  height: 2px; width: 30%;
+  background: linear-gradient(90deg, transparent, #00e5ff, #a855f7, transparent);
+  box-shadow: 0 0 14px rgba(0,229,255,0.8);
+  animation: beamSlide 7s ease-in-out infinite;
+}
+
+/* Slowly drifting cyber grid */
+@keyframes gridDrift {
+  from { background-position: 0 0, 0 0; }
+  to   { background-position: 60px 60px, 60px 60px; }
+}
+.fx-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.06) 1px, transparent 1px);
+  background-size: 60px 60px, 60px 60px;
+  animation: gridDrift 18s linear infinite;
+  mask-image: radial-gradient(circle at 50% 40%, black, transparent 85%);
+  -webkit-mask-image: radial-gradient(circle at 50% 40%, black, transparent 85%);
+}
+
+/* Full-canvas scanline sweep */
+@keyframes scanSweep {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  10%  { opacity: 0.5; }
+  90%  { opacity: 0.5; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+.fx-scan {
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 140px;
+  background: linear-gradient(180deg, transparent, rgba(0,229,255,0.06), transparent);
+  animation: scanSweep 9s linear infinite;
+}
+
+/* Holographic panel: animated gradient hairline border + hover lift */
+.holo {
+  position: relative;
+  border-radius: 1rem;
+  background: rgba(18, 18, 26, 0.66);
+  border: 1px solid rgba(255,255,255,0.06);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 0 28px -10px rgba(0,229,255,0.30);
+  transition: transform .35s cubic-bezier(.2,.7,.2,1), box-shadow .35s, border-color .35s;
+}
+.holo::before {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(0,229,255,0.5), rgba(168,85,247,0.35) 40%, transparent 70%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  opacity: .5;
+  transition: opacity .35s;
+  pointer-events: none;
+}
+.holo:hover {
+  transform: translateY(-3px);
+  border-color: rgba(0,229,255,0.25);
+  box-shadow: 0 18px 50px -12px rgba(0,229,255,0.18), 0 0 0 1px rgba(0,229,255,0.06) inset;
+}
+.holo:hover::before { opacity: 1; }
+
+/* Shimmering sweep used on headers / KPI values */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer-text {
+  background: linear-gradient(90deg, #e2e8f0 0%, #00e5ff 25%, #a855f7 50%, #00e5ff 75%, #e2e8f0 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 6s linear infinite;
+}
+
+/* Breathing glow for active accents */
+@keyframes glowPulse {
+  0%,100% { box-shadow: 0 0 10px rgba(0,229,255,0.35), 0 0 0 rgba(0,229,255,0); }
+  50%     { box-shadow: 0 0 22px rgba(0,229,255,0.65), 0 0 40px rgba(0,229,255,0.15); }
+}
+.glow-pulse { animation: glowPulse 3s ease-in-out infinite; }
+
+/* Soft float for hero elements */
+@keyframes floatY {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-6px); }
+}
+.float-y { animation: floatY 7s ease-in-out infinite; }
+
+/* Animated conic ring used behind the AI core / gauges */
+@keyframes spinSlow { to { transform: rotate(360deg); } }
+.spin-slow { animation: spinSlow 14s linear infinite; }
+.spin-rev  { animation: spinSlow 20s linear infinite reverse; }
+
+/* Tabular numerals for telemetry readouts */
+.tnum { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+
