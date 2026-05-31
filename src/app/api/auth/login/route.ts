@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getUser } from '@/lib/db';
+import { getUser } from '@/lib/store';
 import { verifyPassword } from '@/lib/password';
 import { createSessionToken, SESSION_COOKIE } from '@/lib/session';
 import { lockRemainingSeconds, recordFailure, resetFailures, clientKey } from '@/lib/ratelimit';
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const user = getUser(String(username).trim());
+  const user = await getUser(String(username).trim());
   // Verify even when the user is missing to keep timing uniform.
   const ok = user ? verifyPassword(String(password), user.salt, user.hash) : false;
   if (!user || !ok) {

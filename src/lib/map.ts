@@ -1,4 +1,4 @@
-import type { StoredDevice } from './db';
+import type { StoredDevice } from './store';
 
 /** Shape the web dashboard expects for each device. */
 export function mapDevice(d: StoredDevice) {

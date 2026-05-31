@@ -1,0 +1,21 @@
+# Netlify deployment for the IntelliFix Next.js app.
+# The @netlify/plugin-nextjs plugin runs the App Router (incl. API routes &
+# middleware) as Netlify Functions/Edge. Persistence uses Netlify Blobs, which
+# is available automatically to functions on Netlify (no extra config) — the
+# store layer switches to Blobs when the NETLIFY env var is present.
+
+[build]
+  command = "npm run build"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Set these in Netlify → Site settings → Environment variables:
+#   SESSION_SECRET           (required) openssl rand -hex 32
+#   INTELLIFIX_AGENT_TOKEN   (required for prod) shared secret the agent presents
+#   ANTHROPIC_API_KEY        (optional) enables the Claude assistant
+#   RESEND_API_KEY           (optional) enables real password-reset emails
+#   RESEND_FROM              (optional) e.g. "IntelliFix <noreply@yourdomain>"

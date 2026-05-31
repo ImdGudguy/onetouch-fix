@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { enqueueCommand } from '@/lib/db';
+import { enqueueCommand } from '@/lib/store';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     if (!deviceId || !actionType) {
       return NextResponse.json({ success: false, error: 'deviceId and actionType required' }, { status: 400 });
     }
-    const id = enqueueCommand(deviceId, actionType);
+    const id = await enqueueCommand(deviceId, actionType);
     return NextResponse.json({ success: true, queued: true, commandId: id });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err?.message ?? 'bad request' }, { status: 400 });

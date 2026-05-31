@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
-import { listDevices } from '@/lib/db';
+import { listDevices, enqueueCommand } from '@/lib/store';
 import { mapDevice } from '@/lib/map';
-import { enqueueCommand } from '@/lib/db';
 import { REMEDIATIONS, isKnownRemediation } from '@/lib/remediations';
 
 export const runtime = 'nodejs';
@@ -27,8 +26,8 @@ Rules:
 - Respond with your final answer only; do not narrate intermediate reasoning.
 - If no device/agent is connected, say so and suggest installing the IntelliFix agent.`;
 
-function deviceContext(): string {
-  const d = listDevices().map(mapDevice)[0];
+async function deviceContext(): Promise<string> {
+  const d = (await listDevices()).map(mapDevice)[0];
   if (!d) return 'CONNECTED DEVICE: none (no agent reporting).';
   const failing = (d.compliance?.controls ?? []).filter((c: any) => c.status === 'fail').map((c: any) => c.name);
   return [
@@ -53,15 +52,15 @@ const TOOLS: Anthropic.Tool[] = [
   },
 ];
 
-function runTool(name: string, input: any): string {
+async function runTool(name: string, input: any): Promise<string> {
   if (name === 'get_device_status') return deviceContext();
   if (name === 'list_remediations') return JSON.stringify(REMEDIATIONS);
   if (name === 'queue_remediation') {
     const actionType = String(input?.actionType ?? '');
     if (!isKnownRemediation(actionType)) return `Error: unknown remediation "${actionType}".`;
-    const device = listDevices().map(mapDevice)[0];
+    const device = (await listDevices()).map(mapDevice)[0];
     if (!device) return 'Error: no device connected, cannot queue a remediation.';
-    const id = enqueueCommand(device.deviceId, actionType);
+    const id = await enqueueCommand(device.deviceId, actionType);
     const def = REMEDIATIONS.find((r) => r.id === actionType)!;
     return `Queued "${def.label}" (command ${id}) for ${device.hostname}.${def.requiresConsent ? ' A consent popup will appear on the device before it runs.' : ''}`;
   }
@@ -69,8 +68,8 @@ function runTool(name: string, input: any): string {
 }
 
 // Local fallback when no API key is configured.
-function fallbackReply(message: string): string {
-  const d = listDevices().map(mapDevice)[0];
+async function fallbackReply(message: string): Promise<string> {
+  const d = (await listDevices()).map(mapDevice)[0];
   if (!d) return 'No agent is connected yet. Install the IntelliFix agent and live data will appear here within a few seconds.';
   const m = d.metrics;
   const t = message.toLowerCase();
@@ -92,7 +91,7 @@ export async function POST(req: Request) {
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    return NextResponse.json({ reply: fallbackReply(String(lastUser)) });
+    return NextResponse.json({ reply: await fallbackReply(String(lastUser)) });
   }
 
   try {
@@ -104,7 +103,7 @@ export async function POST(req: Request) {
 
     const system: Anthropic.TextBlockParam[] = [
       { type: 'text', text: SYSTEM_INSTRUCTIONS, cache_control: { type: 'ephemeral' } },
-      { type: 'text', text: `Current device telemetry (live):\n${deviceContext()}` },
+      { type: 'text', text: `Current device telemetry (live):\n${await deviceContext()}` },
     ];
 
     let reply = '';
@@ -124,15 +123,15 @@ export async function POST(req: Request) {
       if (res.stop_reason !== 'tool_use' || toolUses.length === 0) break;
 
       messages.push({ role: 'assistant', content: res.content });
-      messages.push({
-        role: 'user',
-        content: toolUses.map((tu) => ({ type: 'tool_result' as const, tool_use_id: tu.id, content: runTool(tu.name, tu.input) })),
-      });
+      const toolResults = await Promise.all(
+        toolUses.map(async (tu) => ({ type: 'tool_result' as const, tool_use_id: tu.id, content: await runTool(tu.name, tu.input) })),
+      );
+      messages.push({ role: 'user', content: toolResults });
     }
 
     return NextResponse.json({ reply: reply || "I couldn't form a response — please try rephrasing." });
   } catch (err: any) {
     console.error('[chat] error', err?.message);
-    return NextResponse.json({ reply: fallbackReply(String(lastUser)) });
+    return NextResponse.json({ reply: await fallbackReply(String(lastUser)) });
   }
 }

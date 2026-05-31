@@ -34,6 +34,23 @@ npm run start:lan                 # or npm run dev
 .\agent\install-agent.ps1 -BackendUrl https://<random>.trycloudflare.com
 ```
 
+## D′. Netlify (recommended hosted path)
+The app ships with `netlify.toml` + `@netlify/plugin-nextjs`. Persistence uses
+**Netlify Blobs** automatically in the cloud (the store layer detects `NETLIFY`
+and switches from local SQLite to Blobs — no DB to provision).
+
+1. Push the repo to GitHub (already done) and **Import** it in Netlify.
+2. Set environment variables (Site settings → Environment):
+   - `SESSION_SECRET` (required) — `openssl rand -hex 32`
+   - `INTELLIFIX_AGENT_TOKEN` (required for prod) — shared agent secret
+   - `ANTHROPIC_API_KEY` (optional) — enables the Claude assistant
+   - `RESEND_API_KEY` + `RESEND_FROM` (optional) — real reset emails
+3. Deploy. Then point agents at the Netlify URL:
+   `./agent/install-agent.ps1 -BackendUrl https://<your-site>.netlify.app -AgentToken <secret>`
+
+First visit → cookie banner + "create the first admin account". The agent's
+telemetry persists in Blobs, so live device data shows across function calls.
+
 ## D. Cloud / VM (durable enterprise host) — Docker
 SQLite persists in a named volume; Node 22's built-in `node:sqlite` means **no native build**.
 ```bash

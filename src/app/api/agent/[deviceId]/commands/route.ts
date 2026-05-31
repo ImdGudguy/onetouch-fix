@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { takeQueuedCommands } from '@/lib/db';
+import { takeQueuedCommands } from '@/lib/store';
 import { agentUnauthorized } from '@/lib/auth';
 
 export const runtime = 'nodejs';
@@ -9,6 +9,6 @@ export async function GET(req: Request, { params }: { params: Promise<{ deviceId
   const denied = agentUnauthorized(req);
   if (denied) return denied;
   const { deviceId } = await params;
-  const commands = takeQueuedCommands(deviceId);
+  const commands = await takeQueuedCommands(deviceId);
   return NextResponse.json(commands);
 }

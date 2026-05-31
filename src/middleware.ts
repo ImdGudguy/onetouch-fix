@@ -18,8 +18,11 @@ function isAgentChannel(pathname: string): boolean {
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Public: login page, auth endpoints, and the agent ingest channel.
-  if (pathname === '/login' || pathname.startsWith('/api/auth/') || isAgentChannel(pathname)) {
+  // Public: login, legal pages, auth endpoints, and the agent ingest channel.
+  if (
+    pathname === '/login' || pathname === '/terms' || pathname === '/privacy' ||
+    pathname.startsWith('/api/auth/') || isAgentChannel(pathname)
+  ) {
     return NextResponse.next();
   }
 

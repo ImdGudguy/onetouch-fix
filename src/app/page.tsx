@@ -1412,6 +1412,55 @@ function EventStream({ events }: { events: any[] }) {
   );
 }
 
+// First-login prompt to install the agent (also surfaces the device-data notice)
+function AgentInstallModal({ onClose }: { onClose: () => void }) {
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 z-[120] bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+      <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        className="holo rounded-3xl p-8 w-full max-w-[520px] relative">
+        <button onClick={onClose} className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-white/10"><X className="w-5 h-5 text-white/60" /></button>
+        <div className="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center glow-pulse"
+          style={{ background: 'linear-gradient(135deg, #00e5ff 0%, #a855f7 100%)' }}>
+          <Download className="w-8 h-8 text-white" />
+        </div>
+        <h2 className="text-2xl font-bold text-white text-center mb-2">Connect this device</h2>
+        <p className="text-sm text-white/60 text-center mb-5">
+          No agent is reporting yet. Install the IntelliFix agent to stream live telemetry and enable one-touch remediation.
+        </p>
+
+        <div className="space-y-3 mb-5">
+          {[
+            'Download the agent bundle below.',
+            'Run install-agent.ps1 as administrator (it self-elevates).',
+            'This device appears here within a few seconds.',
+          ].map((s, i) => (
+            <div key={i} className="flex items-center gap-3 text-sm text-white/70">
+              <span className="w-6 h-6 rounded-full bg-neon-cyan/15 text-neon-cyan flex items-center justify-center text-xs font-bold flex-shrink-0">{i + 1}</span>
+              {s}
+            </div>
+          ))}
+        </div>
+
+        <div className="rounded-xl bg-neon-yellow/10 border border-neon-yellow/20 p-3 mb-5">
+          <p className="text-xxs text-neon-yellow leading-relaxed">
+            ⚠ The agent collects system metrics, recent Event Log entries and compliance status from this device.
+            See the <a href="/privacy" target="_blank" className="underline">Privacy Policy</a>. Every remediation is consent-gated.
+          </p>
+        </div>
+
+        <div className="flex gap-3">
+          <button onClick={onClose} className="flex-1 px-4 py-3 rounded-xl text-sm font-medium text-white/70 bg-white/5 border border-white/10 hover:bg-white/10">Maybe later</button>
+          <a href="/api/agent/download" className="flex-1 px-4 py-3 rounded-xl text-sm font-bold text-white text-center flex items-center justify-center gap-2"
+            style={{ background: 'linear-gradient(135deg, #00e5ff 0%, #a855f7 100%)' }}>
+            <Download className="w-4 h-4" /> Download Agent
+          </a>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 // ============================================================================
 // MAIN APP COMPONENT
 // ============================================================================
@@ -1444,6 +1493,7 @@ export default function IntelliFixApp() {
   const [pendingFix, setPendingFix] = useState<{ actionType: string; card: RemediationCard | null } | null>(null);
   const [privacyMode, setPrivacyMode] = useState(false);
   const [authUser, setAuthUser] = useState('');
+  const [agentPromptDismissed, setAgentPromptDismissed] = useState(true);
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -1453,7 +1503,13 @@ export default function IntelliFixApp() {
       })
       .then((d) => { if (d?.username) setAuthUser(d.username); })
       .catch(() => {});
+    try { setAgentPromptDismissed(localStorage.getItem('intellifix_agent_prompt') === 'dismissed'); } catch {}
   }, []);
+
+  const dismissAgentPrompt = () => {
+    try { localStorage.setItem('intellifix_agent_prompt', 'dismissed'); } catch {}
+    setAgentPromptDismissed(true);
+  };
 
   const logout = async () => {
     try { await fetch('/api/auth/logout', { method: 'POST' }); } catch {}
@@ -2839,6 +2895,13 @@ export default function IntelliFixApp() {
       {/* Settings Panel */}
       <AnimatePresence>
         {isSettingsOpen && <SettingsPanel isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} privacyMode={privacyMode} onPrivacyModeChange={setPrivacyMode} />}
+      </AnimatePresence>
+
+      {/* First-login agent install prompt (shown when no device is reporting) */}
+      <AnimatePresence>
+        {authUser && !agentPromptDismissed && devices.length === 0 && (
+          <AgentInstallModal onClose={dismissAgentPrompt} />
+        )}
       </AnimatePresence>
 
       {/* Chat Assistant */}
