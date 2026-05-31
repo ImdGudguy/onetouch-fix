@@ -903,6 +903,27 @@ function SettingsPanel({ isOpen, onClose, privacyMode, onPrivacyModeChange }: {
     autoRemediation: true,
     notifications: true,
   });
+  const [curPw, setCurPw] = useState('');
+  const [newPw, setNewPw] = useState('');
+  const [pwMsg, setPwMsg] = useState('');
+  const [pwOk, setPwOk] = useState(false);
+
+  const changePassword = async () => {
+    setPwMsg('');
+    try {
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword: curPw, newPassword: newPw }),
+      });
+      const data = await res.json().catch(() => ({}));
+      setPwOk(res.ok);
+      setPwMsg(res.ok ? 'Password updated.' : data.error || 'Failed to update password.');
+      if (res.ok) { setCurPw(''); setNewPw(''); }
+    } catch {
+      setPwOk(false); setPwMsg('Network error.');
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -994,6 +1015,23 @@ function SettingsPanel({ isOpen, onClose, privacyMode, onPrivacyModeChange }: {
               </button>
             </div>
           ))}
+        </div>
+
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-white/80 uppercase tracking-wider">Security</h3>
+          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-2">
+            <p className="text-sm font-medium text-white">Change Password</p>
+            <input type="password" value={curPw} onChange={(e) => setCurPw(e.target.value)} placeholder="Current password"
+              className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 outline-none focus:border-neon-cyan/50 text-sm" />
+            <input type="password" value={newPw} onChange={(e) => setNewPw(e.target.value)} placeholder="New password (min 6)"
+              className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 outline-none focus:border-neon-cyan/50 text-sm" />
+            {pwMsg && <p className={`text-xs ${pwOk ? 'text-neon-green' : 'text-neon-red'}`}>{pwMsg}</p>}
+            <button onClick={changePassword} disabled={!curPw || !newPw}
+              className="w-full mt-1 px-4 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-50"
+              style={{ background: 'linear-gradient(135deg, #00e5ff 0%, #a855f7 100%)' }}>
+              Update Password
+            </button>
+          </div>
         </div>
       </div>
 

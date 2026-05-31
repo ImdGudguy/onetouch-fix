@@ -41,6 +41,8 @@ function open(): DatabaseSync {
       createdAt TEXT NOT NULL
     );
   `);
+  // Migration: add role to pre-existing users tables (no-op if it exists).
+  try { db.exec("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user'"); } catch { /* column exists */ }
   return db;
 }
 
@@ -117,15 +119,19 @@ export function recordResult(result: any) {
 }
 
 // ---- users (auth) --------------------------------------------------------
-export interface UserRow { username: string; salt: string; hash: string; createdAt: string; }
+export interface UserRow { username: string; salt: string; hash: string; createdAt: string; role: string; }
 
 export function getUser(username: string): UserRow | undefined {
-  return db().prepare('SELECT username, salt, hash, createdAt FROM users WHERE username = ?').get(username);
+  return db().prepare('SELECT username, salt, hash, createdAt, role FROM users WHERE username = ?').get(username);
 }
 
-export function createUser(username: string, salt: string, hash: string) {
-  db().prepare('INSERT INTO users (username, salt, hash, createdAt) VALUES (?, ?, ?, ?)')
-    .run(username, salt, hash, new Date().toISOString());
+export function createUser(username: string, salt: string, hash: string, role: string = 'user') {
+  db().prepare('INSERT INTO users (username, salt, hash, createdAt, role) VALUES (?, ?, ?, ?, ?)')
+    .run(username, salt, hash, new Date().toISOString(), role);
+}
+
+export function updateUserPassword(username: string, salt: string, hash: string) {
+  db().prepare('UPDATE users SET salt = ?, hash = ? WHERE username = ?').run(salt, hash, username);
 }
 
 export function userCount(): number {

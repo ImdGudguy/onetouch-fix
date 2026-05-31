@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getUser, createUser } from '@/lib/db';
+import { getUser, createUser, userCount } from '@/lib/db';
 import { hashPassword } from '@/lib/password';
 import { createSessionToken, SESSION_COOKIE } from '@/lib/session';
 
@@ -15,11 +15,13 @@ export async function POST(req: Request) {
   const uname = String(username).trim();
   if (getUser(uname)) return NextResponse.json({ error: 'That username is already taken.' }, { status: 409 });
 
+  // First account to be created becomes the admin.
+  const role = userCount() === 0 ? 'admin' : 'user';
   const { salt, hash } = hashPassword(String(password));
-  createUser(uname, salt, hash);
+  createUser(uname, salt, hash, role);
 
   const token = await createSessionToken(uname);
-  const res = NextResponse.json({ ok: true, username: uname });
+  const res = NextResponse.json({ ok: true, username: uname, role });
   res.cookies.set(SESSION_COOKIE, token, {
     httpOnly: true, sameSite: 'lax', path: '/', maxAge: 7 * 86400, secure: process.env.NODE_ENV === 'production',
   });

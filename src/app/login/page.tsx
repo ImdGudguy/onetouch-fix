@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ShieldCheck, Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
@@ -9,6 +9,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [firstRun, setFirstRun] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/auth/status')
+      .then((r) => r.json())
+      .then((d) => { if (!d.hasUsers) { setFirstRun(true); setMode('register'); } })
+      .catch(() => {});
+  }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -55,7 +63,7 @@ export default function LoginPage() {
             <span className="text-glow-cyan">IntelliFix</span> <span className="text-white/70">AI</span>
           </h1>
           <p className="text-xs text-white/40 mt-1">
-            {mode === 'login' ? 'Sign in to your console' : 'Create your operator account'}
+            {firstRun ? 'Create the first admin account' : mode === 'login' ? 'Sign in to your console' : 'Create your operator account'}
           </p>
         </div>
 
@@ -90,7 +98,7 @@ export default function LoginPage() {
           {mode === 'login' ? 'Sign In' : 'Create Account'}
         </button>
 
-        <p className="text-center text-xs text-white/40 mt-5">
+        {!firstRun && <p className="text-center text-xs text-white/40 mt-5">
           {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}{' '}
           <button
             type="button"
@@ -99,7 +107,7 @@ export default function LoginPage() {
           >
             {mode === 'login' ? 'Create one' : 'Sign in'}
           </button>
-        </p>
+        </p>}
       </form>
     </div>
   );
