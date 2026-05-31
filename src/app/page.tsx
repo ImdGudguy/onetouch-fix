@@ -1447,7 +1447,10 @@ export default function IntelliFixApp() {
 
   useEffect(() => {
     fetch('/api/auth/me')
-      .then((r) => (r.ok ? r.json() : null))
+      .then((r) => {
+        if (r.status === 401) { window.location.assign('/login'); return null; }
+        return r.ok ? r.json() : null;
+      })
       .then((d) => { if (d?.username) setAuthUser(d.username); })
       .catch(() => {});
   }, []);

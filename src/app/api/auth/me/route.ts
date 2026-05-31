@@ -10,6 +10,8 @@ export async function GET() {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   const username = await verifySessionToken(token);
   if (!username) return NextResponse.json({ authenticated: false }, { status: 401 });
-  const role = getUser(username)?.role ?? 'user';
-  return NextResponse.json({ authenticated: true, username, role });
+  // A signed cookie can outlive its user (deleted/reset). Treat that as logged out.
+  const user = getUser(username);
+  if (!user) return NextResponse.json({ authenticated: false }, { status: 401 });
+  return NextResponse.json({ authenticated: true, username, role: user.role });
 }
