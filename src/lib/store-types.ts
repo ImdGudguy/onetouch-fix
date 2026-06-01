@@ -36,6 +36,8 @@ export interface Backend {
   takeQueuedCommands(deviceId: string): Promise<CommandRow[]>;
   recordResult(result: any): Promise<void>;
   listHistory(limit: number): Promise<any[]>;
+  /** Live status of a single queued command so the dashboard can show progress. */
+  getCommandStatus(id: string): Promise<{ status: string; actionType: string; output: string } | null>;
 
   getUser(username: string): Promise<UserRow | undefined>;
   getUserByEmail(email: string): Promise<UserRow | undefined>;

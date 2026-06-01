@@ -72,8 +72,13 @@ export const blobsBackend: Backend = {
     if (result?.commandId) {
       const store = commands();
       const cmd = (await store.get(result.commandId, { type: 'json' })) as any;
-      if (cmd) await store.setJSON(result.commandId, { ...cmd, status: result.success ? 'completed' : 'failed' });
+      if (cmd) await store.setJSON(result.commandId, { ...cmd, status: result.success ? 'completed' : 'failed', output: result?.output ?? '' });
     }
+  },
+
+  async getCommandStatus(id) {
+    const cmd = (await commands().get(id, { type: 'json' })) as any;
+    return cmd ? { status: cmd.status, actionType: cmd.actionType, output: cmd.output ?? '' } : null;
   },
 
   async listHistory(limit) {

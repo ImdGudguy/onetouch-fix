@@ -43,14 +43,20 @@ if ($srcFull -ieq $destFull) {
 $cfgDir  = Join-Path $env:ProgramData 'IntelliFix'
 New-Item -ItemType Directory -Force -Path $cfgDir | Out-Null
 $cfgPath = Join-Path $cfgDir 'agent.json'
-$deviceId = if (Test-Path $cfgPath) { (Get-Content $cfgPath -Raw | ConvertFrom-Json).deviceId } else { [guid]::NewGuid().ToString() }
+# Preserve identity + any already-issued long-lived device token across reinstalls
+# so a re-run never breaks a working agent (the enroll token is single-use/short-lived).
+$existing = if (Test-Path $cfgPath) { Get-Content $cfgPath -Raw | ConvertFrom-Json } else { $null }
+$deviceId    = if ($existing -and $existing.deviceId)    { $existing.deviceId }    else { [guid]::NewGuid().ToString() }
+$deviceToken = if ($existing -and $existing.deviceToken) { $existing.deviceToken } else { '' }
+# An explicit shared AgentToken passed in wins; otherwise keep the prior one.
+if (-not $AgentToken -and $existing -and $existing.agentToken) { $AgentToken = $existing.agentToken }
 [ordered]@{
     deviceId = $deviceId
     backendUrl = $BackendUrl
     telemetryIntervalSeconds = 5
     agentToken = $AgentToken
     enrollToken = $EnrollToken
-    deviceToken = ''
+    deviceToken = $deviceToken
 } | ConvertTo-Json | Set-Content -Path $cfgPath -Encoding utf8
 Write-Host "Backend URL set to $BackendUrl (device $deviceId)" -ForegroundColor Green
 

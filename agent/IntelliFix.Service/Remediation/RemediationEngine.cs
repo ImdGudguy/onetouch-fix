@@ -26,6 +26,9 @@ public sealed class RemediationEngine
         new() { ActionType = "file_association_repair", Label = "File Assoc Repair", Description = "Reset file type associations", Confidence = 78, Duration = "30s", SuccessRate = 85, RequiresConsent = true },
         new() { ActionType = "chrome_forced_restart", Label = "Chrome Restart", Description = "Force restart Chrome (all tabs close)", Confidence = 90, Duration = "30s", SuccessRate = 95, RequiresConsent = true },
         new() { ActionType = "device_reboot", Label = "Device Reboot", Description = "Schedule system reboot in 60s", Confidence = 95, Duration = "5min", SuccessRate = 100, RequiresConsent = true },
+        new() { ActionType = "outlook_profile_repair", Label = "Outlook Profile", Description = "Repair Outlook profile (will close Outlook)", Confidence = 85, Duration = "2min", SuccessRate = 87, RequiresConsent = true },
+        new() { ActionType = "excel_crash_recovery", Label = "Excel Recovery", Description = "Force restart Excel (save work first)", Confidence = 88, Duration = "1min", SuccessRate = 90, RequiresConsent = true },
+        new() { ActionType = "vpn_reconfiguration", Label = "VPN Reset", Description = "Reset VPN configuration", Confidence = 80, Duration = "1min", SuccessRate = 85, RequiresConsent = true },
     };
 
     public static bool IsKnown(string actionType) => Catalog.Any(d => d.ActionType == actionType);
@@ -49,6 +52,9 @@ public sealed class RemediationEngine
                 "file_association_repair" => FileAssociationRepair(),
                 "chrome_forced_restart" => ChromeRestart(),
                 "device_reboot" => Shell("shutdown", "/r /t 60 /c \"IntelliFix scheduled reboot\""),
+                "outlook_profile_repair" => OutlookProfileRepair(),
+                "excel_crash_recovery" => OfficeRestart("excel", "Excel"),
+                "vpn_reconfiguration" => VpnReset(),
                 _ => (false, $"Unknown action '{actionType}'."),
             };
             result.Success = ok;
@@ -155,6 +161,27 @@ public sealed class RemediationEngine
         foreach (var p in paths)
             if (Directory.Exists(p)) { freed += PurgeOld(p, TimeSpan.Zero); hit++; }
         return (hit > 0, hit > 0 ? $"Cleared Outlook cache (~{freed / 1024 / 1024} MB)." : "No Outlook cache found.");
+    }
+
+    private static (bool, string) OutlookProfileRepair()
+    {
+        // Close Outlook and clear its local cache so the profile rebuilds cleanly
+        // on next launch (a safe, reversible "repair" — no registry surgery).
+        var (_, killMsg) = KillProcess("outlook");
+        var (_, cacheMsg) = OutlookCacheCleanup();
+        return (true, $"{killMsg} {cacheMsg} Outlook profile will rebuild on next launch.");
+    }
+
+    private static (bool, string) OfficeRestart(string processName, string friendly)
+    {
+        var (_, killMsg) = KillProcess(processName);
+        return (true, $"{killMsg} Reopen {friendly} to restore unsaved work via AutoRecover.");
+    }
+
+    private static (bool, string) VpnReset()
+    {
+        // Restart the Remote Access Connection Manager so VPN tunnels re-negotiate.
+        return RestartService("RasMan");
     }
 
     private static (bool, string) FileAssociationRepair()

@@ -108,8 +108,32 @@ const api = {
   async getRemediationHistory() {
     const res = await fetch(`${API_BASE}/remediation/history`);
     return res.json();
+  },
+  async getFixStatus(commandId: string) {
+    const res = await fetch(`${API_BASE}/remediation/status/${commandId}`, { cache: 'no-store' });
+    if (!res.ok) return null;
+    return res.json() as Promise<{ status: string; actionType: string; output: string }>;
   }
 };
+
+// Map a detected issue to the most relevant remediation the agent actually
+// supports. (Previously every issue fell through to Disk Cleanup because the
+// keys didn't match any real action id.) Only returns ids the agent executes.
+function issueToActionType(issue: { title?: string; description?: string; category?: string; recommendedFix?: string }): string {
+  const t = `${issue.title ?? ''} ${issue.description ?? ''} ${issue.category ?? ''} ${issue.recommendedFix ?? ''}`.toLowerCase();
+  if (/(wi-?fi|wireless)/.test(t)) return 'wifi_adapter_reset';
+  if (/(dns|latency|network|connectiv|internet)/.test(t)) return 'dns_flush';
+  if (/(memory|\bram\b|leak)/.test(t)) return 'memory_optimization';
+  if (/(disk|storage|space|\bc:\b|\bdrive\b|capacity)/.test(t)) return 'disk_cleanup';
+  if (/(outlook|\bost\b|\bemail\b|\bmail\b)/.test(t)) return 'outlook_cache_cleanup';
+  if (/(teams)/.test(t)) return 'teams_cache_cleanup';
+  if (/(print|spooler)/.test(t)) return 'print_spooler_restart';
+  if (/(chrome|browser)/.test(t)) return 'chrome_forced_restart';
+  if (/(service)/.test(t)) return 'windows_service_restart';
+  if (/(association|file type|\.\w+ files)/.test(t)) return 'file_association_repair';
+  if (/(temp|cache|junk|cleanup)/.test(t)) return 'temp_cleanup';
+  return 'temp_cleanup'; // safe, no-consent default (e.g. pending updates)
+}
 
 // ============================================================================
 // TYPES
@@ -1741,61 +1765,84 @@ export default function IntelliFixApp() {
     setPendingFix(null);
 
     const device = devices[0];
+    if (!device) {
+      setIsExecutingFix(true);
+      setFixProgress(0);
+      setFixStatus('No device is connected yet — install the agent first.');
+      setTimeout(() => { setIsExecutingFix(false); setFixStatus(''); }, 3500);
+      return;
+    }
+
     setIsExecutingFix(true);
-    setFixProgress(0);
-    setFixStatus('Initializing autonomous fix...');
+    setFixProgress(10);
+    setFixStatus('Sending fix request to the device…');
 
+    let done = false;
     try {
-      // Steps with AI-themed messages
-      const steps = [
-        'Initializing neural remediation engine...',
-        'Analyzing system state & dependencies...',
-        'Calculating optimal fix parameters...',
-        'Applying secure remediation steps...',
-        'Validating fix effectiveness...',
-        'Completing & generating report...'
-      ];
-
-      let stepIndex = 0;
-      setFixStatus(steps[0]);
-
-      const progressInterval = setInterval(() => {
-        setFixProgress(prev => {
-          const newProgress = Math.min(prev + 8, 95);
-          const newStepIndex = Math.min(Math.floor(newProgress / (100 / steps.length)), steps.length - 1);
-          if (newStepIndex > stepIndex) {
-            stepIndex = newStepIndex;
-            setFixStatus(steps[stepIndex]);
-          }
-          return newProgress;
-        });
-      }, 400);
-
-      const result = await api.executeFix(device.deviceId, actionType);
-
-      clearInterval(progressInterval);
-      setFixProgress(100);
-      setFixStatus('Remediation Complete!');
-
-      if (result.success) {
-        setTimeout(async () => {
-          const devicesResult = await api.getDevices();
-          const historyData = await api.getRemediationHistory();
-          setDevices(devicesResult.devices);
-          setFleetSummary(devicesResult.fleetSummary || null);
-          setRemediationHistory(historyData.history || []);
-        }, 1500);
+      const queued = await api.executeFix(device.deviceId, actionType);
+      if (!queued?.commandId) {
+        setFixStatus('Could not queue the fix. Please try again.');
+        setTimeout(() => { setIsExecutingFix(false); setFixProgress(0); setFixStatus(''); }, 3500);
+        return;
       }
+
+      const commandId: string = queued.commandId;
+      setFixProgress(25);
+      setFixStatus(agentConnected
+        ? 'Queued — waiting for the agent to pick it up…'
+        : 'Queued — the fix will run as soon as the agent connects…');
+
+      // Poll the real command status and surface a live one-line message that
+      // keeps updating until the remediation finishes (or we hit the timeout).
+      const deadline = Date.now() + 120_000; // 2 minutes
+      while (Date.now() < deadline && !done) {
+        await new Promise((r) => setTimeout(r, 1500));
+        let st: { status: string; output: string } | null = null;
+        try { st = await api.getFixStatus(commandId); } catch { continue; }
+        if (!st) continue;
+
+        if (st.status === 'running') {
+          setFixProgress((p) => Math.max(p, 65));
+          setFixStatus('Running on the device — applying remediation…');
+        } else if (st.status === 'completed') {
+          setFixProgress(100);
+          setFixStatus(st.output ? `Done — ${st.output}` : 'Remediation complete!');
+          done = true;
+        } else if (st.status === 'failed') {
+          setFixProgress(100);
+          setFixStatus(st.output ? `Failed — ${st.output}` : 'Fix failed on the device.');
+          done = true;
+        } else {
+          // still queued
+          setFixProgress((p) => Math.max(p, 35));
+          setFixStatus(agentConnected
+            ? 'Queued — waiting for the agent to pick it up…'
+            : 'Waiting for the agent to connect… (the fix is saved and will run automatically)');
+        }
+      }
+
+      if (!done) {
+        setFixStatus('Still running — you can close this; results appear in Remediation history.');
+      }
+
+      // Refresh devices + history regardless so the UI reflects the latest state.
+      try {
+        const devicesResult = await api.getDevices();
+        const historyData = await api.getRemediationHistory();
+        setDevices(devicesResult.devices);
+        setFleetSummary(devicesResult.fleetSummary || null);
+        setRemediationHistory(historyData.history || []);
+      } catch { /* refresh is best-effort */ }
     } catch (error) {
-      setFixStatus('Fix Failed - Rolling back...');
+      setFixStatus('Fix failed — could not reach the server.');
     }
 
     setTimeout(() => {
       setIsExecutingFix(false);
       setFixProgress(0);
       setFixStatus('');
-    }, 3000);
-  }, [devices]);
+    }, done ? 5000 : 4000);
+  }, [devices, pendingFix, agentConnected]);
 
   // Handlers
   const handleSendMessage = useCallback(async (message: string) => {
@@ -2187,6 +2234,21 @@ export default function IntelliFixApp() {
 
               {/* Right - Actions */}
               <div className="flex items-center gap-2">
+                {/* Compact "agent offline" warning — small icon + text, click to install */}
+                {authUser && !isLoading && !agentConnected && (
+                  <motion.button
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => { setAgentSnoozeUntil(0); setAgentModalOpen(true); }}
+                    title="No agent is reporting from this PC — click to install"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-neon-yellow/10 border border-neon-yellow/30 text-neon-yellow hover:bg-neon-yellow/20">
+                    <AlertTriangle className="w-3.5 h-3.5 animate-pulse" />
+                    <span className="text-xs font-medium hidden sm:inline">No agent</span>
+                  </motion.button>
+                )}
+
                 <div className="relative">
                   <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setShowNotifications(!showNotifications)}
                     className="relative p-2.5 rounded-xl hover:bg-white/5">
@@ -2283,12 +2345,9 @@ export default function IntelliFixApp() {
                 <div className="space-y-4">
                   {issues.length > 0 ? issues.map((issue) => (
                     <EnterpriseIssueCard key={issue.id} issue={issue} onFix={() => {
-                    const actionType = issue.title.toLowerCase().includes('cpu') ? 'cpu' :
-                      issue.title.toLowerCase().includes('network') ? 'network' :
-                      issue.title.toLowerCase().includes('outlook') ? 'outlook' :
-                      issue.title.toLowerCase().includes('excel') ? 'excel' : 'printer';
-                    const card = remediationCards.find(c => c.id === actionType);
-                    openFixConfirmation(actionType, card || remediationCards[0]);
+                    const actionType = issueToActionType(issue);
+                    const card = remediationCards.find(c => c.id === actionType) || remediationCards[0];
+                    openFixConfirmation(actionType, card);
                   }} />
                   )) : (
                     <div className="text-center py-8 text-white/40">
@@ -2942,16 +3001,6 @@ export default function IntelliFixApp() {
           <AgentInstallModal onClose={snoozeAgentPrompt} />
         )}
       </AnimatePresence>
-
-      {/* Persistent "agent offline" pill — always visible while disconnected */}
-      {authUser && !isLoading && !agentConnected && (
-        <button onClick={() => { setAgentSnoozeUntil(0); setAgentModalOpen(true); }}
-          title="No agent is reporting — click to install"
-          className="fixed bottom-6 left-6 z-40 flex items-center gap-2 px-3 py-2 rounded-full holo text-xs font-medium text-white/80 hover:text-white">
-          <span className="w-2 h-2 rounded-full bg-neon-red animate-pulse" style={{ boxShadow: '0 0 8px #ef4444' }} />
-          Agent offline — Install
-        </button>
-      )}
 
       {/* Chat Assistant */}
       <ChatAssistant isOpen={isAssistantOpen} onToggle={() => {

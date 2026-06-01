@@ -13,7 +13,7 @@ function db(): DatabaseSync {
   const d = new DatabaseSync(path.join(dir, 'intellifix.db'));
   d.exec(`
     CREATE TABLE IF NOT EXISTS devices (deviceId TEXT PRIMARY KEY, snapshot TEXT NOT NULL, updatedAt TEXT NOT NULL, registeredAt TEXT NOT NULL);
-    CREATE TABLE IF NOT EXISTS commands (id TEXT PRIMARY KEY, deviceId TEXT NOT NULL, actionType TEXT NOT NULL, status TEXT NOT NULL, createdAt TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS commands (id TEXT PRIMARY KEY, deviceId TEXT NOT NULL, actionType TEXT NOT NULL, status TEXT NOT NULL, createdAt TEXT NOT NULL, output TEXT);
     CREATE TABLE IF NOT EXISTS history (id TEXT PRIMARY KEY, deviceId TEXT, actionType TEXT, success INTEGER, output TEXT, completedAt TEXT);
     CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, salt TEXT NOT NULL, hash TEXT NOT NULL, createdAt TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS otp (username TEXT PRIMARY KEY, hash TEXT NOT NULL, exp INTEGER NOT NULL);
@@ -22,6 +22,7 @@ function db(): DatabaseSync {
   `);
   try { d.exec("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user'"); } catch {}
   try { d.exec('ALTER TABLE users ADD COLUMN email TEXT'); } catch {}
+  try { d.exec('ALTER TABLE commands ADD COLUMN output TEXT'); } catch {}
   g.__intellifixDb = d;
   return d;
 }
@@ -70,7 +71,12 @@ export const sqliteBackend: Backend = {
     const completedAt = result?.completedAt ?? new Date().toISOString();
     db().prepare('INSERT INTO history (id, deviceId, actionType, success, output, completedAt) VALUES (?, ?, ?, ?, ?, ?)')
       .run(randomUUID(), result?.deviceId ?? null, result?.actionType ?? '', result?.success ? 1 : 0, result?.output ?? '', completedAt);
-    if (result?.commandId) db().prepare('UPDATE commands SET status = ? WHERE id = ?').run(result.success ? 'completed' : 'failed', result.commandId);
+    if (result?.commandId) db().prepare('UPDATE commands SET status = ?, output = ? WHERE id = ?').run(result.success ? 'completed' : 'failed', result?.output ?? '', result.commandId);
+  },
+
+  async getCommandStatus(id) {
+    const r = db().prepare('SELECT status, actionType, output FROM commands WHERE id = ?').get(id);
+    return r ? { status: r.status, actionType: r.actionType, output: r.output ?? '' } : null;
   },
 
   async listHistory(limit) {

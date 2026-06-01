@@ -23,6 +23,7 @@ export const enqueueCommand = async (deviceId: string, actionType: string) => (a
 export const takeQueuedCommands = async (deviceId: string) => (await backend()).takeQueuedCommands(deviceId);
 export const recordResult = async (r: any) => (await backend()).recordResult(r);
 export const listHistory = async (limit = 20) => (await backend()).listHistory(limit);
+export const getCommandStatus = async (id: string) => (await backend()).getCommandStatus(id);
 
 // Users / auth
 export const getUser = async (u: string) => (await backend()).getUser(u);
