@@ -7,11 +7,12 @@ export const config = {
 };
 
 function isAgentChannel(pathname: string): boolean {
-  // The agent authenticates with its own token (see lib/auth.ts), not a user
-  // session — telemetry/result/commands must stay open to it. The browser-facing
-  // download endpoint is NOT exempt (operators must be logged in to download).
+  // The agent authenticates with its own token, not a user session, so its
+  // ingest endpoints plus the public bootstrap installer & bundle download stay
+  // open. /api/agent/enroll is the exception — it reveals the token, so it must
+  // require an authenticated admin session (gated below).
   if (!pathname.startsWith('/api/agent/')) return false;
-  if (pathname === '/api/agent/download') return false;
+  if (pathname === '/api/agent/enroll') return false;
   return true;
 }
 

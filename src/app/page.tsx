@@ -1415,24 +1415,28 @@ function EventStream({ events }: { events: any[] }) {
 // First-login prompt to install the agent (also surfaces the device-data notice)
 function AgentInstallModal({ onClose }: { onClose: () => void }) {
   const [copied, setCopied] = useState(false);
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://your-site.netlify.app';
-  const cmds = [
-    '# On the Windows PC you want to monitor (PowerShell):',
-    'git clone https://github.com/ImdGudguy/onetouch-fix.git',
-    'cd onetouch-fix',
-    '.\\agent\\build-agent.ps1',
-    `.\\agent\\install-agent.ps1 -BackendUrl ${origin} -AgentToken <YOUR_AGENT_TOKEN>`,
-  ].join('\n');
+  const [enroll, setEnroll] = useState<{ oneLiner: string; downloadUrl: string; hasToken: boolean } | null>(null);
+  const [denied, setDenied] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/agent/enroll')
+      .then((r) => { if (r.status === 403) { setDenied(true); return null; } return r.ok ? r.json() : null; })
+      .then((d) => { if (d?.oneLiner) setEnroll(d); })
+      .catch(() => {});
+  }, []);
 
   const copy = async () => {
-    try { await navigator.clipboard.writeText(cmds); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch {}
+    if (!enroll) return;
+    try { await navigator.clipboard.writeText(enroll.oneLiner); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch {}
   };
+
+  const downloadUrl = enroll?.downloadUrl || '/api/agent/download';
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[120] bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
       <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-        className="holo rounded-3xl p-8 w-full max-w-[560px] relative">
+        className="holo rounded-3xl p-8 w-full max-w-[600px] relative">
         <button onClick={onClose} className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-white/10"><X className="w-5 h-5 text-white/60" /></button>
         <div className="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center glow-pulse"
           style={{ background: 'linear-gradient(135deg, #00e5ff 0%, #a855f7 100%)' }}>
@@ -1440,31 +1444,46 @@ function AgentInstallModal({ onClose }: { onClose: () => void }) {
         </div>
         <h2 className="text-2xl font-bold text-white text-center mb-2">Connect a device</h2>
         <p className="text-sm text-white/60 text-center mb-5">
-          No agent is reporting. Build &amp; install the IntelliFix agent on the target Windows PC — it self-elevates,
-          installs as a service, and reports here within seconds.
+          On the Windows PC you want to monitor, open <b className="text-white/80">PowerShell as administrator</b> and run this one line —
+          it downloads &amp; installs the agent and reports here within seconds.
         </p>
 
-        <div className="rounded-xl bg-black/40 border border-white/10 p-3 mb-3 font-mono text-[11px] text-white/80 whitespace-pre overflow-x-auto">
-          {cmds}
-        </div>
+        {denied ? (
+          <div className="rounded-xl bg-white/[0.03] border border-white/10 p-4 mb-5 text-sm text-white/60">
+            Ask an <b className="text-white/80">administrator</b> for the device enrollment command, or download the installer below and run
+            <span className="font-mono text-white/80"> install-agent.ps1</span> with your backend URL and token.
+          </div>
+        ) : (
+          <>
+            <div className="rounded-xl bg-black/40 border border-white/10 p-3 mb-2 font-mono text-[11px] text-white/80 break-all">
+              {enroll?.oneLiner ?? 'Loading enrollment command…'}
+            </div>
+            {enroll && !enroll.hasToken && (
+              <p className="text-xxs text-neon-yellow mb-2">⚠ No INTELLIFIX_AGENT_TOKEN is set — the agent channel is unauthenticated. Set it in your environment for production.</p>
+            )}
+            <button onClick={copy} disabled={!enroll}
+              className="w-full px-4 py-2 rounded-lg text-sm font-bold text-white mb-4 disabled:opacity-50"
+              style={{ background: 'linear-gradient(135deg, #00e5ff 0%, #a855f7 100%)' }}>
+              {copied ? 'Copied!' : 'Copy one-line installer'}
+            </button>
+          </>
+        )}
 
         <div className="rounded-xl bg-neon-yellow/10 border border-neon-yellow/20 p-3 mb-5">
           <p className="text-xxs text-neon-yellow leading-relaxed">
             ⚠ The agent collects system metrics, recent Event Log entries and compliance status from this device.
             See the <a href="/privacy" target="_blank" className="underline">Privacy Policy</a>. Every remediation is consent-gated.
-            Replace <span className="font-mono">&lt;YOUR_AGENT_TOKEN&gt;</span> with your INTELLIFIX_AGENT_TOKEN.
           </p>
         </div>
 
         <div className="flex gap-3">
           <button onClick={onClose} className="flex-1 px-4 py-3 rounded-xl text-sm font-medium text-white/70 bg-white/5 border border-white/10 hover:bg-white/10">Remind me later</button>
-          <button onClick={copy} className="flex-1 px-4 py-3 rounded-xl text-sm font-bold text-white text-center flex items-center justify-center gap-2"
-            style={{ background: 'linear-gradient(135deg, #00e5ff 0%, #a855f7 100%)' }}>
-            <Download className="w-4 h-4" /> {copied ? 'Copied!' : 'Copy install commands'}
-          </button>
+          <a href={downloadUrl} target="_blank" rel="noreferrer" className="flex-1 px-4 py-3 rounded-xl text-sm font-bold text-white text-center flex items-center justify-center gap-2 bg-white/10 border border-white/15 hover:bg-white/15">
+            <Download className="w-4 h-4" /> Download installer (.zip)
+          </a>
         </div>
         <p className="text-center text-xxs text-white/30 mt-3">
-          See <a href="https://github.com/ImdGudguy/onetouch-fix/blob/main/AGENT.md" target="_blank" rel="noreferrer" className="hover:text-white/60 underline">AGENT.md</a> for full details.
+          Prefer manual? See <a href="https://github.com/ImdGudguy/onetouch-fix/blob/main/AGENT.md" target="_blank" rel="noreferrer" className="hover:text-white/60 underline">AGENT.md</a>.
         </p>
       </motion.div>
     </motion.div>

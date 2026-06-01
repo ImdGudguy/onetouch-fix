@@ -18,9 +18,13 @@ if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administra
 }
 
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
-$src  = Join-Path $root 'dist\agent'
-if (-not (Test-Path (Join-Path $src 'IntelliFix.Agent.exe'))) {
-    throw "Build output not found. Run .\build-agent.ps1 first (expected $src\IntelliFix.Agent.exe)."
+# Exes may sit beside this script (downloaded bundle) or under dist\agent (local build).
+if (Test-Path (Join-Path $root 'IntelliFix.Agent.exe')) {
+    $src = $root
+} elseif (Test-Path (Join-Path $root 'dist\agent\IntelliFix.Agent.exe')) {
+    $src = Join-Path $root 'dist\agent'
+} else {
+    throw "IntelliFix.Agent.exe not found. Run .\build-agent.ps1 first, or run this script from the extracted agent bundle."
 }
 
 $dest = Join-Path $env:ProgramFiles 'IntelliFix'
