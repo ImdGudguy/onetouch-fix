@@ -14,7 +14,9 @@ const clean = (s: string | null, re: RegExp) => (s && re.test(s) ? s : '');
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const backend = clean(url.searchParams.get('backend'), /^https?:\/\/[^\s'"`]+$/) || `${url.protocol}//${url.host}`;
+  const enroll = clean(url.searchParams.get('enroll'), /^[A-Za-z0-9_-]{0,128}$/);
   const token = clean(url.searchParams.get('token'), /^[A-Za-z0-9_-]{0,128}$/);
+  const tokenArgs = enroll ? `-EnrollToken '${enroll}'` : token ? `-AgentToken '${token}'` : '';
 
   const ps = `# IntelliFix Agent bootstrap installer
 $ErrorActionPreference = 'Stop'
@@ -26,7 +28,7 @@ Invoke-WebRequest '${RELEASE_ZIP}' -OutFile $zip -UseBasicParsing
 if (Test-Path $dir) { Remove-Item -Recurse -Force $dir }
 Expand-Archive $zip $dir -Force
 Write-Host 'Installing service (you will be prompted for administrator)...' -ForegroundColor Cyan
-& (Join-Path $dir 'install-agent.ps1') -BackendUrl '${backend}' -AgentToken '${token}'
+& (Join-Path $dir 'install-agent.ps1') -BackendUrl '${backend}' ${tokenArgs}
 `;
 
   return new NextResponse(ps, {

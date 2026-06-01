@@ -46,4 +46,11 @@ export interface Backend {
   setOtp(username: string, rec: OtpRecord): Promise<void>;
   getOtp(username: string): Promise<OtpRecord | undefined>;
   clearOtp(username: string): Promise<void>;
+
+  // Device enrollment: single-use short-lived enrollment tokens, and the
+  // long-lived per-device tokens they're redeemed for (all stored hashed).
+  createEnrollment(hash: string, exp: number): Promise<void>;
+  consumeEnrollment(hash: string): Promise<boolean>; // true if valid & now burned
+  addDeviceToken(hash: string, deviceId: string): Promise<void>;
+  isDeviceToken(hash: string): Promise<boolean>;
 }

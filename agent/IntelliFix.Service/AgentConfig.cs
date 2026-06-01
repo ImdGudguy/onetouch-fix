@@ -8,7 +8,9 @@ public sealed class AgentConfig
     public string DeviceId { get; set; } = "";
     public string BackendUrl { get; set; } = "http://localhost:3000";
     public int TelemetryIntervalSeconds { get; set; } = 5;
-    public string AgentToken { get; set; } = "";
+    public string AgentToken { get; set; } = "";   // legacy shared token (optional)
+    public string EnrollToken { get; set; } = "";   // single-use, redeemed on first run
+    public string DeviceToken { get; set; } = "";    // long-lived per-device token (issued)
 
     private static string ConfigDir =>
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "IntelliFix");

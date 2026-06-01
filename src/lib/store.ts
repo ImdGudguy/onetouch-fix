@@ -35,3 +35,9 @@ export const userCount = async () => (await backend()).userCount();
 export const setOtp = async (u: string, rec: import('./store-types').OtpRecord) => (await backend()).setOtp(u, rec);
 export const getOtp = async (u: string) => (await backend()).getOtp(u);
 export const clearOtp = async (u: string) => (await backend()).clearOtp(u);
+
+// Device enrollment
+export const createEnrollment = async (hash: string, exp: number) => (await backend()).createEnrollment(hash, exp);
+export const consumeEnrollment = async (hash: string) => (await backend()).consumeEnrollment(hash);
+export const addDeviceToken = async (hash: string, deviceId: string) => (await backend()).addDeviceToken(hash, deviceId);
+export const isDeviceToken = async (hash: string) => (await backend()).isDeviceToken(hash);

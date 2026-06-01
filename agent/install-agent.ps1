@@ -5,7 +5,8 @@
 #
 param(
     [string]$BackendUrl = 'http://localhost:3000',
-    [string]$AgentToken = ''
+    [string]$AgentToken = '',
+    [string]$EnrollToken = ''
 )
 $ErrorActionPreference = 'Stop'
 
@@ -13,7 +14,7 @@ $ErrorActionPreference = 'Stop'
 $principal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
 if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     Write-Host "Elevation required - relaunching as administrator..." -ForegroundColor Yellow
-    Start-Process powershell -Verb RunAs -ArgumentList "-ExecutionPolicy Bypass -File `"$PSCommandPath`" -BackendUrl `"$BackendUrl`" -AgentToken `"$AgentToken`""
+    Start-Process powershell -Verb RunAs -ArgumentList "-ExecutionPolicy Bypass -File `"$PSCommandPath`" -BackendUrl `"$BackendUrl`" -AgentToken `"$AgentToken`" -EnrollToken `"$EnrollToken`""
     exit
 }
 
@@ -29,16 +30,28 @@ if (Test-Path (Join-Path $root 'IntelliFix.Agent.exe')) {
 
 $dest = Join-Path $env:ProgramFiles 'IntelliFix'
 New-Item -ItemType Directory -Force -Path $dest | Out-Null
-Copy-Item "$src\*" $dest -Recurse -Force
-Write-Host "Copied agent to $dest" -ForegroundColor Green
+$srcFull  = (Resolve-Path $src).Path.TrimEnd('\')
+$destFull = (Resolve-Path $dest).Path.TrimEnd('\')
+if ($srcFull -ieq $destFull) {
+    Write-Host "Agent files already in $dest." -ForegroundColor Green
+} else {
+    Copy-Item "$src\*" $dest -Recurse -Force
+    Write-Host "Copied agent to $dest" -ForegroundColor Green
+}
 
 # --- config (preserve existing device id) ---
 $cfgDir  = Join-Path $env:ProgramData 'IntelliFix'
 New-Item -ItemType Directory -Force -Path $cfgDir | Out-Null
 $cfgPath = Join-Path $cfgDir 'agent.json'
 $deviceId = if (Test-Path $cfgPath) { (Get-Content $cfgPath -Raw | ConvertFrom-Json).deviceId } else { [guid]::NewGuid().ToString() }
-[ordered]@{ deviceId = $deviceId; backendUrl = $BackendUrl; telemetryIntervalSeconds = 5; agentToken = $AgentToken } |
-    ConvertTo-Json | Set-Content -Path $cfgPath -Encoding utf8
+[ordered]@{
+    deviceId = $deviceId
+    backendUrl = $BackendUrl
+    telemetryIntervalSeconds = 5
+    agentToken = $AgentToken
+    enrollToken = $EnrollToken
+    deviceToken = ''
+} | ConvertTo-Json | Set-Content -Path $cfgPath -Encoding utf8
 Write-Host "Backend URL set to $BackendUrl (device $deviceId)" -ForegroundColor Green
 
 # --- (re)create the service ---

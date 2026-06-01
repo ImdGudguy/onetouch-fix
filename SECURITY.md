@@ -20,8 +20,8 @@ The server can never make the agent run arbitrary commands. It can only enqueue 
 1. **Web confirm popup** — the operator must approve in the dashboard; only then is a command queued.
 2. **On-device native popup** — for `RequiresConsent` actions the agent asks the WPF tray to show a Yes/No popup **on the actual PC** before executing. Denied or timed-out (60s) → the fix does not run and is reported as denied.
 
-### 3. Agent-channel authentication
-When `INTELLIFIX_AGENT_TOKEN` is set, every `/api/agent/*` request must present a matching `x-intellifix-token` header (constant-time compared). The installer writes the token into the agent config (`-AgentToken`). **Production deployments must set this token** — without it the agent channel is open (intended only for a trusted-localhost demo).
+### 3. Agent-channel authentication (per-device enrollment)
+An admin mints a **single-use enrollment token** (valid 15 minutes) from the dashboard's "Connect a device". The agent redeems it once via `/api/agent/enroll-device` for a **long-lived, per-device token** (the enrollment token is then burned). Every `/api/agent/*` request must present a valid device token (or the legacy shared `INTELLIFIX_AGENT_TOKEN`) in the `x-intellifix-token` header. Tokens are stored **hashed** (SHA-256). Because enrollment tokens are short-lived and single-use, a leaked one is worthless; a leaked device token affects only that device and can be revoked. If no shared token is configured (local dev), the channel is open for convenience.
 
 ### 4. Named-pipe ACL
 The consent pipe (`IntelliFixConsent`) is created with an explicit ACL granting LocalSystem full control and authenticated users read/write — so the user-session tray can connect to the SYSTEM-hosted pipe without exposing it more broadly.

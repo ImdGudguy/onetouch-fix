@@ -17,6 +17,8 @@ function db(): DatabaseSync {
     CREATE TABLE IF NOT EXISTS history (id TEXT PRIMARY KEY, deviceId TEXT, actionType TEXT, success INTEGER, output TEXT, completedAt TEXT);
     CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, salt TEXT NOT NULL, hash TEXT NOT NULL, createdAt TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS otp (username TEXT PRIMARY KEY, hash TEXT NOT NULL, exp INTEGER NOT NULL);
+    CREATE TABLE IF NOT EXISTS enrollments (hash TEXT PRIMARY KEY, exp INTEGER NOT NULL, used INTEGER NOT NULL DEFAULT 0);
+    CREATE TABLE IF NOT EXISTS device_tokens (hash TEXT PRIMARY KEY, deviceId TEXT, createdAt TEXT);
   `);
   try { d.exec("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user'"); } catch {}
   try { d.exec('ALTER TABLE users ADD COLUMN email TEXT'); } catch {}
@@ -109,5 +111,25 @@ export const sqliteBackend: Backend = {
 
   async clearOtp(username) {
     db().prepare('DELETE FROM otp WHERE username = ?').run(username);
+  },
+
+  async createEnrollment(hash, exp) {
+    db().prepare('INSERT OR REPLACE INTO enrollments (hash, exp, used) VALUES (?, ?, 0)').run(hash, exp);
+  },
+
+  async consumeEnrollment(hash) {
+    const r = db().prepare('SELECT exp, used FROM enrollments WHERE hash = ?').get(hash);
+    if (!r || r.used || r.exp < Date.now()) return false;
+    db().prepare('UPDATE enrollments SET used = 1 WHERE hash = ?').run(hash);
+    return true;
+  },
+
+  async addDeviceToken(hash, deviceId) {
+    db().prepare('INSERT OR REPLACE INTO device_tokens (hash, deviceId, createdAt) VALUES (?, ?, ?)')
+      .run(hash, deviceId, new Date().toISOString());
+  },
+
+  async isDeviceToken(hash) {
+    return !!db().prepare('SELECT 1 FROM device_tokens WHERE hash = ?').get(hash);
   },
 };

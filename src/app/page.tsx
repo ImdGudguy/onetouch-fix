@@ -1415,7 +1415,7 @@ function EventStream({ events }: { events: any[] }) {
 // First-login prompt to install the agent (also surfaces the device-data notice)
 function AgentInstallModal({ onClose }: { onClose: () => void }) {
   const [copied, setCopied] = useState(false);
-  const [enroll, setEnroll] = useState<{ oneLiner: string; downloadUrl: string; hasToken: boolean } | null>(null);
+  const [enroll, setEnroll] = useState<{ oneLiner: string; downloadUrl: string; expiresInMinutes: number } | null>(null);
   const [denied, setDenied] = useState(false);
 
   useEffect(() => {
@@ -1458,8 +1458,8 @@ function AgentInstallModal({ onClose }: { onClose: () => void }) {
             <div className="rounded-xl bg-black/40 border border-white/10 p-3 mb-2 font-mono text-[11px] text-white/80 break-all">
               {enroll?.oneLiner ?? 'Loading enrollment command…'}
             </div>
-            {enroll && !enroll.hasToken && (
-              <p className="text-xxs text-neon-yellow mb-2">⚠ No INTELLIFIX_AGENT_TOKEN is set — the agent channel is unauthenticated. Set it in your environment for production.</p>
+            {enroll && (
+              <p className="text-xxs text-white/40 mb-2">Single-use enrollment token, valid for {enroll.expiresInMinutes} minutes. The agent exchanges it for its own device token on first run.</p>
             )}
             <button onClick={copy} disabled={!enroll}
               className="w-full px-4 py-2 rounded-lg text-sm font-bold text-white mb-4 disabled:opacity-50"
@@ -1479,7 +1479,7 @@ function AgentInstallModal({ onClose }: { onClose: () => void }) {
         <div className="flex gap-3">
           <button onClick={onClose} className="flex-1 px-4 py-3 rounded-xl text-sm font-medium text-white/70 bg-white/5 border border-white/10 hover:bg-white/10">Remind me later</button>
           <a href={downloadUrl} target="_blank" rel="noreferrer" className="flex-1 px-4 py-3 rounded-xl text-sm font-bold text-white text-center flex items-center justify-center gap-2 bg-white/10 border border-white/15 hover:bg-white/15">
-            <Download className="w-4 h-4" /> Download installer (.zip)
+            <Download className="w-4 h-4" /> Download installer (.exe)
           </a>
         </div>
         <p className="text-center text-xxs text-white/30 mt-3">

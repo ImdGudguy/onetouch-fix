@@ -9,6 +9,8 @@ const commands = () => getStore({ name: 'intellifix-commands', consistency: 'str
 const history = () => getStore({ name: 'intellifix-history', consistency: 'strong' });
 const users = () => getStore({ name: 'intellifix-users', consistency: 'strong' });
 const otps = () => getStore({ name: 'intellifix-otp', consistency: 'strong' });
+const enrollments = () => getStore({ name: 'intellifix-enrollments', consistency: 'strong' });
+const deviceTokens = () => getStore({ name: 'intellifix-devicetokens', consistency: 'strong' });
 
 const uk = (username: string) => `u_${encodeURIComponent(username.toLowerCase())}`;
 
@@ -116,5 +118,25 @@ export const blobsBackend: Backend = {
 
   async clearOtp(username) {
     await otps().delete(uk(username));
+  },
+
+  async createEnrollment(hash, exp) {
+    await enrollments().setJSON(hash, { exp, used: false });
+  },
+
+  async consumeEnrollment(hash) {
+    const store = enrollments();
+    const r = (await store.get(hash, { type: 'json' })) as { exp: number; used: boolean } | null;
+    if (!r || r.used || r.exp < Date.now()) return false;
+    await store.setJSON(hash, { ...r, used: true });
+    return true;
+  },
+
+  async addDeviceToken(hash, deviceId) {
+    await deviceTokens().setJSON(hash, { deviceId, createdAt: new Date().toISOString() });
+  },
+
+  async isDeviceToken(hash) {
+    return (await deviceTokens().get(hash, { type: 'json' })) != null;
   },
 };

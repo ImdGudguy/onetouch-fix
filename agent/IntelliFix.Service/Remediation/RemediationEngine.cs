@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using IntelliFix.Core;
+using IntelliFix.Service.Collectors;
 
 namespace IntelliFix.Service.Remediation;
 

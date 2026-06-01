@@ -36,6 +36,27 @@ public sealed class Worker : BackgroundService
         _consent.Start();
         _log.LogInformation("IntelliFix Agent started. Device {DeviceId}, backend {Url}", _config.DeviceId, _config.BackendUrl);
 
+        // One-time device enrollment: redeem the single-use enrollment token for
+        // a long-lived per-device token, then use that for all authenticated calls.
+        if (string.IsNullOrWhiteSpace(_config.DeviceToken) && !string.IsNullOrWhiteSpace(_config.EnrollToken))
+        {
+            for (int attempt = 1; attempt <= 5 && !stoppingToken.IsCancellationRequested; attempt++)
+            {
+                var token = await _backend.EnrollDeviceAsync(_config.EnrollToken, _config.DeviceId, stoppingToken);
+                if (token is not null)
+                {
+                    _config.DeviceToken = token;
+                    _config.EnrollToken = "";
+                    _config.Save();
+                    _backend.ApplyAuthHeader();
+                    _log.LogInformation("Device enrolled; received per-device token.");
+                    break;
+                }
+                _log.LogWarning("Enrollment attempt {Attempt} failed (token invalid/expired or backend unreachable).", attempt);
+                await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
+            }
+        }
+
         while (!stoppingToken.IsCancellationRequested)
         {
             try

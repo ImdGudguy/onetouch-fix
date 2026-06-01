@@ -22,13 +22,40 @@ jobs:
       - name: Build self-contained agent bundle
         shell: pwsh
         run: ./agent/build-agent.ps1
+
+      - name: Build GUI installer (Inno Setup)
+        shell: pwsh
+        run: |
+          choco install innosetup -y --no-progress
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          & $iscc "agent\installer\IntelliFix.iss"
+          if (-not (Test-Path "agent\dist\IntelliFix-Agent-Setup.exe")) { throw "Installer not produced" }
+
+      - name: Code-sign installer (only if a cert secret is configured)
+        shell: pwsh
+        env:
+          CODESIGN_PFX_BASE64: ${{ secrets.CODESIGN_PFX_BASE64 }}
+          CODESIGN_PFX_PASSWORD: ${{ secrets.CODESIGN_PFX_PASSWORD }}
+        run: |
+          if (-not $env:CODESIGN_PFX_BASE64) { Write-Host 'No CODESIGN_PFX_BASE64 secret set — leaving installer unsigned.'; exit 0 }
+          $pfx = Join-Path $env:RUNNER_TEMP 'cs.pfx'
+          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:CODESIGN_PFX_BASE64))
+          $signtool = (Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" -ErrorAction SilentlyContinue | Select-Object -Last 1).FullName
+          if (-not $signtool) { throw 'signtool.exe not found' }
+          & $signtool sign /f $pfx /p $env:CODESIGN_PFX_PASSWORD /tr http://timestamp.digicert.com /td sha256 /fd sha256 "agent\dist\IntelliFix-Agent-Setup.exe"
+
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: agent/dist/IntelliFix-Agent.zip
+          files: |
+            agent/dist/IntelliFix-Agent.zip
+            agent/dist/IntelliFix-Agent-Setup.exe
           name: IntelliFix Agent ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
           body: |
-            Self-contained IntelliFix Windows agent (Service + consent Tray) and install scripts.
-            Install with the one-liner from your dashboard, or download and run `install-agent.ps1`.
-            See AGENT.md.
+            Self-contained IntelliFix Windows agent (Service + consent Tray).
+
+            - **IntelliFix-Agent-Setup.exe** — GUI installer (double-click; asks for backend URL + enrollment token). Silent: `/VERYSILENT /backend=<url> /enroll=<token>`.
+            - **IntelliFix-Agent.zip** — raw bundle + install scripts (used by the one-line installer).
+
+            Get a device enrollment token from your dashboard → "Connect a device". See AGENT.md.

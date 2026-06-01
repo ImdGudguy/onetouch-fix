@@ -1,14 +1,18 @@
 import { NextResponse } from 'next/server';
 import { cookies, headers } from 'next/headers';
+import { createHash, randomBytes } from 'node:crypto';
 import { verifySessionToken, SESSION_COOKIE } from '@/lib/session';
-import { getUser } from '@/lib/store';
+import { getUser, createEnrollment } from '@/lib/store';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-// Admin-only: returns the one-line enrollment command (site URL + token baked in)
-// and the bundle download URL. Gated by middleware + this role check so the
-// shared agent token is only revealed to an authenticated admin.
+const sha256 = (s: string) => createHash('sha256').update(s).digest('hex');
+const TTL_MIN = 15;
+
+// Admin-only: mints a single-use, short-lived ENROLLMENT token (not the device
+// token, not the shared secret) and returns a personalized one-line installer.
+// A leaked enrollment token is useless after 15 minutes / one use.
 export async function GET() {
   const username = await verifySessionToken((await cookies()).get(SESSION_COOKIE)?.value);
   if (!username) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
@@ -19,9 +23,17 @@ export async function GET() {
   const proto = h.get('x-forwarded-proto') || 'https';
   const host = h.get('x-forwarded-host') || h.get('host') || '';
   const origin = `${proto}://${host}`;
-  const token = process.env.INTELLIFIX_AGENT_TOKEN || '';
 
-  const oneLiner = `powershell -ExecutionPolicy Bypass -Command "irm '${origin}/api/agent/install.ps1?backend=${origin}&token=${token}' | iex"`;
+  const enrollToken = randomBytes(24).toString('hex');
+  await createEnrollment(sha256(enrollToken), Date.now() + TTL_MIN * 60_000);
 
-  return NextResponse.json({ origin, hasToken: !!token, downloadUrl: `${origin}/api/agent/download`, oneLiner });
+  const oneLiner = `powershell -ExecutionPolicy Bypass -Command "irm '${origin}/api/agent/install.ps1?backend=${origin}&enroll=${enrollToken}' | iex"`;
+
+  return NextResponse.json({
+    origin,
+    oneLiner,
+    downloadUrl: `${origin}/api/agent/download`,
+    enrollToken,
+    expiresInMinutes: TTL_MIN,
+  });
 }

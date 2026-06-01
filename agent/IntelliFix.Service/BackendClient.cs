@@ -14,9 +14,33 @@ public sealed class BackendClient
         _http = http;
         _config = config;
         _http.Timeout = TimeSpan.FromSeconds(10);
-        if (!string.IsNullOrWhiteSpace(config.AgentToken))
-            _http.DefaultRequestHeaders.Add("x-intellifix-token", config.AgentToken);
+        ApplyAuthHeader();
     }
+
+    /// <summary>Sets the auth header to the per-device token if present, else the legacy shared token.</summary>
+    public void ApplyAuthHeader()
+    {
+        _http.DefaultRequestHeaders.Remove("x-intellifix-token");
+        var token = !string.IsNullOrWhiteSpace(_config.DeviceToken) ? _config.DeviceToken : _config.AgentToken;
+        if (!string.IsNullOrWhiteSpace(token))
+            _http.DefaultRequestHeaders.Add("x-intellifix-token", token);
+    }
+
+    /// <summary>Redeems the single-use enrollment token for a long-lived per-device token.</summary>
+    public async Task<string?> EnrollDeviceAsync(string enrollToken, string deviceId, CancellationToken ct)
+    {
+        try
+        {
+            var res = await _http.PostAsJsonAsync($"{_config.BackendUrl}/api/agent/enroll-device",
+                new { enrollToken, deviceId }, Json.Options, ct);
+            if (!res.IsSuccessStatusCode) return null;
+            var doc = await res.Content.ReadFromJsonAsync<EnrollResponse>(Json.Options, ct);
+            return string.IsNullOrWhiteSpace(doc?.DeviceToken) ? null : doc!.DeviceToken;
+        }
+        catch { return null; }
+    }
+
+    private sealed class EnrollResponse { public string? DeviceToken { get; set; } }
 
     public async Task<bool> PushTelemetryAsync(TelemetrySnapshot snapshot, CancellationToken ct)
     {
