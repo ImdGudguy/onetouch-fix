@@ -1414,48 +1414,58 @@ function EventStream({ events }: { events: any[] }) {
 
 // First-login prompt to install the agent (also surfaces the device-data notice)
 function AgentInstallModal({ onClose }: { onClose: () => void }) {
+  const [copied, setCopied] = useState(false);
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://your-site.netlify.app';
+  const cmds = [
+    '# On the Windows PC you want to monitor (PowerShell):',
+    'git clone https://github.com/ImdGudguy/onetouch-fix.git',
+    'cd onetouch-fix',
+    '.\\agent\\build-agent.ps1',
+    `.\\agent\\install-agent.ps1 -BackendUrl ${origin} -AgentToken <YOUR_AGENT_TOKEN>`,
+  ].join('\n');
+
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(cmds); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch {}
+  };
+
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 z-[120] bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
-      <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[120] bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+      <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-        className="holo rounded-3xl p-8 w-full max-w-[520px] relative">
+        className="holo rounded-3xl p-8 w-full max-w-[560px] relative">
         <button onClick={onClose} className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-white/10"><X className="w-5 h-5 text-white/60" /></button>
         <div className="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center glow-pulse"
           style={{ background: 'linear-gradient(135deg, #00e5ff 0%, #a855f7 100%)' }}>
           <Download className="w-8 h-8 text-white" />
         </div>
-        <h2 className="text-2xl font-bold text-white text-center mb-2">Connect this device</h2>
+        <h2 className="text-2xl font-bold text-white text-center mb-2">Connect a device</h2>
         <p className="text-sm text-white/60 text-center mb-5">
-          No agent is reporting yet. Install the IntelliFix agent to stream live telemetry and enable one-touch remediation.
+          No agent is reporting. Build &amp; install the IntelliFix agent on the target Windows PC — it self-elevates,
+          installs as a service, and reports here within seconds.
         </p>
 
-        <div className="space-y-3 mb-5">
-          {[
-            'Download the agent bundle below.',
-            'Run install-agent.ps1 as administrator (it self-elevates).',
-            'This device appears here within a few seconds.',
-          ].map((s, i) => (
-            <div key={i} className="flex items-center gap-3 text-sm text-white/70">
-              <span className="w-6 h-6 rounded-full bg-neon-cyan/15 text-neon-cyan flex items-center justify-center text-xs font-bold flex-shrink-0">{i + 1}</span>
-              {s}
-            </div>
-          ))}
+        <div className="rounded-xl bg-black/40 border border-white/10 p-3 mb-3 font-mono text-[11px] text-white/80 whitespace-pre overflow-x-auto">
+          {cmds}
         </div>
 
         <div className="rounded-xl bg-neon-yellow/10 border border-neon-yellow/20 p-3 mb-5">
           <p className="text-xxs text-neon-yellow leading-relaxed">
             ⚠ The agent collects system metrics, recent Event Log entries and compliance status from this device.
             See the <a href="/privacy" target="_blank" className="underline">Privacy Policy</a>. Every remediation is consent-gated.
+            Replace <span className="font-mono">&lt;YOUR_AGENT_TOKEN&gt;</span> with your INTELLIFIX_AGENT_TOKEN.
           </p>
         </div>
 
         <div className="flex gap-3">
-          <button onClick={onClose} className="flex-1 px-4 py-3 rounded-xl text-sm font-medium text-white/70 bg-white/5 border border-white/10 hover:bg-white/10">Maybe later</button>
-          <a href="/api/agent/download" className="flex-1 px-4 py-3 rounded-xl text-sm font-bold text-white text-center flex items-center justify-center gap-2"
+          <button onClick={onClose} className="flex-1 px-4 py-3 rounded-xl text-sm font-medium text-white/70 bg-white/5 border border-white/10 hover:bg-white/10">Remind me later</button>
+          <button onClick={copy} className="flex-1 px-4 py-3 rounded-xl text-sm font-bold text-white text-center flex items-center justify-center gap-2"
             style={{ background: 'linear-gradient(135deg, #00e5ff 0%, #a855f7 100%)' }}>
-            <Download className="w-4 h-4" /> Download Agent
-          </a>
+            <Download className="w-4 h-4" /> {copied ? 'Copied!' : 'Copy install commands'}
+          </button>
         </div>
+        <p className="text-center text-xxs text-white/30 mt-3">
+          See <a href="https://github.com/ImdGudguy/onetouch-fix/blob/main/AGENT.md" target="_blank" rel="noreferrer" className="hover:text-white/60 underline">AGENT.md</a> for full details.
+        </p>
       </motion.div>
     </motion.div>
   );
@@ -1493,7 +1503,8 @@ export default function IntelliFixApp() {
   const [pendingFix, setPendingFix] = useState<{ actionType: string; card: RemediationCard | null } | null>(null);
   const [privacyMode, setPrivacyMode] = useState(false);
   const [authUser, setAuthUser] = useState('');
-  const [agentPromptDismissed, setAgentPromptDismissed] = useState(true);
+  const [agentModalOpen, setAgentModalOpen] = useState(false);
+  const [agentSnoozeUntil, setAgentSnoozeUntil] = useState(0);
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -1503,12 +1514,21 @@ export default function IntelliFixApp() {
       })
       .then((d) => { if (d?.username) setAuthUser(d.username); })
       .catch(() => {});
-    try { setAgentPromptDismissed(localStorage.getItem('intellifix_agent_prompt') === 'dismissed'); } catch {}
   }, []);
 
-  const dismissAgentPrompt = () => {
-    try { localStorage.setItem('intellifix_agent_prompt', 'dismissed'); } catch {}
-    setAgentPromptDismissed(true);
+  // Live agent-connection status: "connected" = at least one device reporting recently.
+  const agentConnected = devices.some((d) => d.isOnline);
+
+  // While disconnected, auto-open the install prompt; re-open every 5 min after dismissal.
+  useEffect(() => {
+    if (!authUser || isLoading) return;
+    if (agentConnected) { setAgentModalOpen(false); return; }
+    if (Date.now() >= agentSnoozeUntil) setAgentModalOpen(true);
+  }, [authUser, isLoading, agentConnected, agentSnoozeUntil, devices]);
+
+  const snoozeAgentPrompt = () => {
+    setAgentSnoozeUntil(Date.now() + 5 * 60_000);
+    setAgentModalOpen(false);
   };
 
   const logout = async () => {
@@ -2897,12 +2917,22 @@ export default function IntelliFixApp() {
         {isSettingsOpen && <SettingsPanel isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} privacyMode={privacyMode} onPrivacyModeChange={setPrivacyMode} />}
       </AnimatePresence>
 
-      {/* First-login agent install prompt (shown when no device is reporting) */}
+      {/* Agent install prompt — re-opens every 5 min while no agent is reporting */}
       <AnimatePresence>
-        {authUser && !agentPromptDismissed && devices.length === 0 && (
-          <AgentInstallModal onClose={dismissAgentPrompt} />
+        {authUser && !agentConnected && agentModalOpen && (
+          <AgentInstallModal onClose={snoozeAgentPrompt} />
         )}
       </AnimatePresence>
+
+      {/* Persistent "agent offline" pill — always visible while disconnected */}
+      {authUser && !isLoading && !agentConnected && (
+        <button onClick={() => { setAgentSnoozeUntil(0); setAgentModalOpen(true); }}
+          title="No agent is reporting — click to install"
+          className="fixed bottom-6 left-6 z-40 flex items-center gap-2 px-3 py-2 rounded-full holo text-xs font-medium text-white/80 hover:text-white">
+          <span className="w-2 h-2 rounded-full bg-neon-red animate-pulse" style={{ boxShadow: '0 0 8px #ef4444' }} />
+          Agent offline — Install
+        </button>
+      )}
 
       {/* Chat Assistant */}
       <ChatAssistant isOpen={isAssistantOpen} onToggle={() => {
