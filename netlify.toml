@@ -6,6 +6,8 @@
 
 [build]
   command = "npm run build"
+  # Must NOT be the repo root — the Next runtime publishes the .next output.
+  publish = ".next"
 
 [build.environment]
   NODE_VERSION = "22"
