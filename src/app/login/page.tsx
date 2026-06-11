@@ -101,7 +101,7 @@ export default function LoginPage() {
               <ShieldCheck className="w-7 h-7 text-white" />
             </div>
             <h1 className="text-xl font-bold"><span className="text-glow-cyan">IntelliFix</span> <span className="text-white/70">AI</span></h1>
-            <p className="text-xs text-white/40 mt-1">
+            <p className="text-xs text-white/60 mt-1">
               {firstRun ? 'Create the first admin account'
                 : mode === 'login' ? 'Sign in to your console'
                 : mode === 'register' ? 'Create your operator account'
@@ -119,32 +119,32 @@ export default function LoginPage() {
           {/* Username (login/register) */}
           {(mode === 'login' || mode === 'register') && (
             <>
-              <label className="block text-xxs uppercase tracking-wider text-white/40 mb-1">Username</label>
-              <input value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" className={`${inputCls} mb-4`} placeholder="Enter your username" />
+              <label htmlFor="login-username" className="block text-xxs uppercase tracking-wider text-white/60 mb-1">Username</label>
+              <input id="login-username" value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" className={`${inputCls} mb-4`} placeholder="Enter your username" />
             </>
           )}
 
           {/* Email (register) */}
           {mode === 'register' && (
             <>
-              <label className="block text-xxs uppercase tracking-wider text-white/40 mb-1">Email</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" className={`${inputCls} mb-4`} placeholder="you@company.com" />
+              <label htmlFor="login-email" className="block text-xxs uppercase tracking-wider text-white/60 mb-1">Email</label>
+              <input id="login-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" className={`${inputCls} mb-4`} placeholder="you@company.com" />
             </>
           )}
 
           {/* Identifier (forgot/reset) */}
           {(mode === 'forgot' || mode === 'reset') && (
             <>
-              <label className="block text-xxs uppercase tracking-wider text-white/40 mb-1">Username or email</label>
-              <input value={identifier} onChange={(e) => setIdentifier(e.target.value)} readOnly={mode === 'reset'} className={`${inputCls} mb-4 ${mode === 'reset' ? 'opacity-60' : ''}`} placeholder="you@company.com" />
+              <label htmlFor="login-identifier" className="block text-xxs uppercase tracking-wider text-white/60 mb-1">Username or email</label>
+              <input id="login-identifier" value={identifier} onChange={(e) => setIdentifier(e.target.value)} readOnly={mode === 'reset'} className={`${inputCls} mb-4 ${mode === 'reset' ? 'opacity-60' : ''}`} placeholder="you@company.com" />
             </>
           )}
 
           {/* OTP code (reset) */}
           {mode === 'reset' && (
             <>
-              <label className="block text-xxs uppercase tracking-wider text-white/40 mb-1">6-digit code</label>
-              <input value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" className={`${inputCls} mb-1 tracking-[0.4em] text-center`} placeholder="000000" />
+              <label htmlFor="login-code" className="block text-xxs uppercase tracking-wider text-white/60 mb-1">6-digit code</label>
+              <input id="login-code" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" autoComplete="one-time-code" className={`${inputCls} mb-1 tracking-[0.4em] text-center`} placeholder="000000" />
               {devCode && <p className="text-xxs text-neon-yellow mb-3">Dev mode code: <span className="font-mono">{devCode}</span></p>}
               {!devCode && <div className="mb-3" />}
             </>
@@ -153,11 +153,11 @@ export default function LoginPage() {
           {/* Password (login/register/reset) */}
           {mode !== 'forgot' && (
             <>
-              <label className="block text-xxs uppercase tracking-wider text-white/40 mb-1">{mode === 'reset' ? 'New password' : 'Password'}</label>
+              <label htmlFor="login-password" className="block text-xxs uppercase tracking-wider text-white/60 mb-1">{mode === 'reset' ? 'New password' : 'Password'}</label>
               <div className="relative mb-2">
-                <input type={showPw ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)}
+                <input id="login-password" type={showPw ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)}
                   autoComplete={mode === 'login' ? 'current-password' : 'new-password'} className={`${inputCls} pr-10`} placeholder="••••••••" />
-                <button type="button" onClick={() => setShowPw(!showPw)} aria-label={showPw ? 'Hide password' : 'Show password'} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white">
+                <button type="button" onClick={() => setShowPw(!showPw)} aria-label={showPw ? 'Hide password' : 'Show password'} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white">
                   {showPw ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
                 </button>
               </div>
@@ -200,12 +200,12 @@ export default function LoginPage() {
             </div>
           )}
           {mode === 'register' && !firstRun && (
-            <p className="text-center text-xs text-white/40 mt-4">
+            <p className="text-center text-xs text-white/60 mt-4">
               Already have an account? <button type="button" onClick={() => go('login')} className="text-neon-cyan hover:underline">Sign in</button>
             </p>
           )}
 
-          <p className="text-center text-xxs text-white/25 mt-6">
+          <p className="text-center text-xxs text-white/45 mt-6">
             <a href="/terms" target="_blank" className="hover:text-white/50">Terms</a> · <a href="/privacy" target="_blank" className="hover:text-white/50">Privacy</a> · Developed by Naveen Singh
           </p>
         </form>

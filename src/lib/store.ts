@@ -42,3 +42,4 @@ export const createEnrollment = async (hash: string, exp: number) => (await back
 export const consumeEnrollment = async (hash: string) => (await backend()).consumeEnrollment(hash);
 export const addDeviceToken = async (hash: string, deviceId: string) => (await backend()).addDeviceToken(hash, deviceId);
 export const isDeviceToken = async (hash: string) => (await backend()).isDeviceToken(hash);
+export const deviceIdForToken = async (hash: string) => (await backend()).deviceIdForToken(hash);

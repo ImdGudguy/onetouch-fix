@@ -144,4 +144,9 @@ export const blobsBackend: Backend = {
   async isDeviceToken(hash) {
     return (await deviceTokens().get(hash, { type: 'json' })) != null;
   },
+
+  async deviceIdForToken(hash) {
+    const r = (await deviceTokens().get(hash, { type: 'json' })) as { deviceId?: string } | null;
+    return r?.deviceId ?? null;
+  },
 };

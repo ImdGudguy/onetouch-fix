@@ -13,7 +13,7 @@ import {
   Shield, FileCheck, Settings2, MonitorSmartphone, ShieldCheck, ShieldAlert,
   Clock, ZapOff, ActivityIcon, Layers, Circle, RadioTower, ChevronDown, Filter,
   Database, Cpu as CpuIcon, HardDrive as HardDriveIcon, Clock as ClockIcon,
-  Globe, Download, Cog as CogIcon, FileText, Wifi, LogOut
+  Globe, Download, Cog as CogIcon, FileText, Wifi, LogOut, Menu
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
@@ -1016,8 +1016,8 @@ function SettingsPanel({ isOpen, onClose, privacyMode, onPrivacyModeChange }: {
     >
       <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-white">Settings</h2>
-        <motion.button whileHover={{ scale: 1.1 }} onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/10">
-          <X className="w-5 h-5 text-white/60" />
+        <motion.button whileHover={{ scale: 1.1 }} onClick={onClose} aria-label="Close settings" className="p-1.5 rounded-lg hover:bg-white/10">
+          <X className="w-5 h-5 text-white/60" aria-hidden="true" />
         </motion.button>
       </div>
 
@@ -1193,6 +1193,7 @@ function ChatAssistant({ isOpen, onToggle, messages, onSendMessage, isTyping }: 
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         onClick={onToggle}
+        aria-label={isOpen ? 'Close AI assistant' : 'Open AI assistant'}
         className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center"
         style={{ background: 'linear-gradient(135deg, #00e5ff 0%, #a855f7 100%)', boxShadow: '0 4px 30px rgba(0, 229, 255, 0.4)' }}
         whileHover={{ scale: 1.1 }}
@@ -1237,8 +1238,8 @@ function ChatAssistant({ isOpen, onToggle, messages, onSendMessage, isTyping }: 
                 </div>
               </div>
               <div className="flex items-center gap-1">
-                <motion.button whileHover={{ scale: 1.1 }} onClick={() => setIsExpanded(!isExpanded)} className="p-2 rounded-lg hover:bg-white/10">
-                  {isExpanded ? <Minimize2 className="w-4 h-4 text-white/60" /> : <Maximize2 className="w-4 h-4 text-white/60" />}
+                <motion.button whileHover={{ scale: 1.1 }} onClick={() => setIsExpanded(!isExpanded)} aria-label={isExpanded ? 'Collapse chat window' : 'Expand chat window'} className="p-2 rounded-lg hover:bg-white/10">
+                  {isExpanded ? <Minimize2 className="w-4 h-4 text-white/60" aria-hidden="true" /> : <Maximize2 className="w-4 h-4 text-white/60" aria-hidden="true" />}
                 </motion.button>
               </div>
             </div>
@@ -1529,7 +1530,7 @@ function AgentInstallModal({ onClose }: { onClose: () => void }) {
       <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
         className="holo rounded-3xl p-8 w-full max-w-[600px] relative">
-        <button onClick={onClose} className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-white/10"><X className="w-5 h-5 text-white/60" /></button>
+        <button onClick={onClose} aria-label="Close" className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-white/10"><X className="w-5 h-5 text-white/60" aria-hidden="true" /></button>
         <div className="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center glow-pulse"
           style={{ background: 'linear-gradient(135deg, #00e5ff 0%, #a855f7 100%)' }}>
           <Download className="w-8 h-8 text-white" />
@@ -1597,6 +1598,7 @@ export default function IntelliFixApp() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [healthScore, setHealthScore] = useState(0);
   const [trustScore, setTrustScore] = useState(100);
   const [devices, setDevices] = useState<ApiDevice[]>([]);
@@ -2215,8 +2217,8 @@ export default function IntelliFixApp() {
         <div className="absolute inset-0" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%2300e5ff\' fill-opacity=\'0.015\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }} />
       </div>
 
-      {/* Sidebar */}
-      <div className="relative z-20 p-4 flex-shrink-0">
+      {/* Sidebar — static rail on desktop (lg+) */}
+      <div className="relative z-20 p-4 flex-shrink-0 hidden lg:block">
         <CollapsibleSidebar
           isCollapsed={isSidebarCollapsed}
           onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
@@ -2227,6 +2229,34 @@ export default function IntelliFixApp() {
         />
       </div>
 
+      {/* Sidebar — slide-in drawer on mobile (< lg) */}
+      <AnimatePresence>
+        {mobileNavOpen && (
+          <>
+            <motion.div
+              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setMobileNavOpen(false)} aria-hidden="true"
+            />
+            <motion.div
+              className="fixed left-0 top-0 bottom-0 z-50 p-3 lg:hidden"
+              role="dialog" aria-modal="true" aria-label="Navigation menu"
+              initial={{ x: -288 }} animate={{ x: 0 }} exit={{ x: -288 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 38 }}
+            >
+              <CollapsibleSidebar
+                isCollapsed={false}
+                onToggle={() => setMobileNavOpen(false)}
+                activeItem={activeNavItem}
+                onItemClick={(id) => { setActiveNavItem(id); setMobileNavOpen(false); }}
+                deviceCount={devices.length}
+                onlineCount={devices.filter(d => d.isOnline).length}
+              />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
@@ -2234,12 +2264,19 @@ export default function IntelliFixApp() {
           <div className="px-4 sm:px-6 py-4">
             <div className="flex items-center justify-between gap-3 flex-wrap">
               {/* Left - Device info */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 sm:gap-4">
+                {/* Mobile nav toggle (opens the drawer) */}
+                <button
+                  type="button" onClick={() => setMobileNavOpen(true)} aria-label="Open navigation menu"
+                  className="lg:hidden p-2 rounded-lg hover:bg-white/5 text-white/70">
+                  <Menu className="w-5 h-5" aria-hidden="true" />
+                </button>
                 {/* Device Selector Dropdown */}
                 <div className="relative">
                   <select
                     value={selectedDeviceId || devices[0]?.deviceId || ''}
                     onChange={(e) => setSelectedDeviceId(e.target.value)}
+                    aria-label="Select device"
                     className="appearance-none bg-space-dark/50 border border-white/10 rounded-lg px-3 py-2 pr-8 text-sm text-white cursor-pointer hover:border-neon-cyan/30 focus:outline-none focus:border-neon-cyan/50"
                   >
                     {devices.map((device) => (

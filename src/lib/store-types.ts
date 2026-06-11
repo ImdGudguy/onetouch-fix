@@ -55,4 +55,6 @@ export interface Backend {
   consumeEnrollment(hash: string): Promise<boolean>; // true if valid & now burned
   addDeviceToken(hash: string, deviceId: string): Promise<void>;
   isDeviceToken(hash: string): Promise<boolean>;
+  /** The deviceId a token hash is bound to, or null if unknown. */
+  deviceIdForToken(hash: string): Promise<string | null>;
 }

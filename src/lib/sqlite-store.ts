@@ -138,4 +138,9 @@ export const sqliteBackend: Backend = {
   async isDeviceToken(hash) {
     return !!db().prepare('SELECT 1 FROM device_tokens WHERE hash = ?').get(hash);
   },
+
+  async deviceIdForToken(hash) {
+    const r = db().prepare('SELECT deviceId FROM device_tokens WHERE hash = ?').get(hash);
+    return r?.deviceId ?? null;
+  },
 };
