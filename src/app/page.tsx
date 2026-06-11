@@ -908,7 +908,7 @@ function TelemetryCard({ metric, value, unit, privacyMode }: { metric: string; v
           style={{ background: color }}
         />
       </div>
-      <span className="text-sm font-mono font-bold text-white w-12 text-right">
+      <span className="text-sm font-mono font-bold text-white w-12 text-right tabular-nums">
         {privacyMode ? '•••' : `${Math.round(value)}`}<span className="text-xs text-white/40">{privacyMode ? '' : unit}</span>
       </span>
     </div>
@@ -2251,7 +2251,7 @@ export default function IntelliFixApp() {
 
                 <div className="relative">
                   <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setShowNotifications(!showNotifications)}
-                    className="relative p-2.5 rounded-xl hover:bg-white/5">
+                    aria-label="Notifications" className="relative p-2.5 rounded-xl hover:bg-white/5">
                     <Bell className="w-5 h-5 text-white/70" />
                     {unreadCount > 0 && <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-neon-pink text-xxs font-bold text-white flex items-center justify-center">{unreadCount}</span>}
                   </motion.button>
@@ -2260,16 +2260,16 @@ export default function IntelliFixApp() {
                   </AnimatePresence>
                 </div>
 
-                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="p-2.5 rounded-xl hover:bg-white/5">
+                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} aria-label="Refresh data" className="p-2.5 rounded-xl hover:bg-white/5">
                   <RefreshCw className="w-5 h-5 text-white/70" />
                 </motion.button>
 
-                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setIsSettingsOpen(true)} className="p-2.5 rounded-xl hover:bg-white/5">
+                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setIsSettingsOpen(true)} aria-label="Settings" className="p-2.5 rounded-xl hover:bg-white/5">
                   <Settings className="w-5 h-5 text-white/70" />
                 </motion.button>
 
                 {authUser && <span className="text-xs text-white/50 px-1 hidden md:block">{authUser}</span>}
-                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={logout} title="Sign out"
+                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={logout} title="Sign out" aria-label="Sign out"
                   className="p-2.5 rounded-xl hover:bg-white/5">
                   <LogOut className="w-5 h-5 text-white/70" />
                 </motion.button>

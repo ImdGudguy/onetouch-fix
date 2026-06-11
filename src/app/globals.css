@@ -22,7 +22,17 @@ html, body {
 body {
   background-color: var(--space-black);
   color: #e2e8f0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: var(--font-sans), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Visible keyboard focus ring for accessibility (Quick Reference §1 focus-states).
+   Only shows for keyboard users, never on mouse click. */
+:focus-visible {
+  outline: 2px solid rgba(0, 229, 255, 0.8);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar {
@@ -229,6 +239,34 @@ input[type='range']::-moz-range-thumb {
 .spin-slow { animation: spinSlow 14s linear infinite; }
 .spin-rev  { animation: spinSlow 20s linear infinite reverse; }
 
-/* Tabular numerals for telemetry readouts */
-.tnum { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+/* Tabular numerals for telemetry readouts — monospaced figures keep live,
+   changing numbers from shifting width (Quick Reference §6 number-tabular). */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  font-family: var(--font-mono), 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* ===================================================================== */
+/*  ACCESSIBILITY — respect prefers-reduced-motion (Quick Reference §1/§7) */
+/*  The dashboard is animation-heavy; users who request reduced motion get */
+/*  a calm, static interface instead of constant looping effects.          */
+/* ===================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* Park the looping decorative FX in their resting state. */
+  .fx-aurora, .fx-beam, .fx-grid, .fx-scan,
+  .shimmer-text, .glow-pulse, .float-y, .spin-slow, .spin-rev {
+    animation: none !important;
+  }
+  .shimmer-text {
+    -webkit-text-fill-color: #e2e8f0;
+    color: #e2e8f0;
+  }
+}
 

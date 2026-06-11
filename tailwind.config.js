@@ -17,6 +17,18 @@ module.exports = {
         'neon-yellow': '#facc15',
         'space-black': '#0a0a12',
         'space-dark': '#12121a',
+        // Semantic tokens (intent-named) layered over the neon palette so
+        // component code expresses meaning, not raw hue. Per UI/UX color-semantic.
+        primary: '#00e5ff',   // brand / primary action  (cyan)
+        accent: '#a855f7',    // secondary accent         (purple)
+        success: '#10b981',   // healthy / completed      (green)
+        warning: '#facc15',   // attention / degraded     (yellow)
+        danger: '#ef4444',    // critical / failed        (red)
+        info: '#60a5fa',      // neutral informational    (blue)
+      },
+      fontFamily: {
+        sans: ['var(--font-sans)', 'Inter', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        mono: ['var(--font-mono)', 'JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       fontSize: {
         xxs: ['0.625rem', { lineHeight: '0.875rem' }],
