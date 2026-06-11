@@ -7,7 +7,11 @@
  * Set SESSION_SECRET in the environment for production (see .env.example). The
  * dev fallback below is clearly marked and overridable — never ship it as-is.
  */
-const SECRET = process.env.SESSION_SECRET || 'intellifix-dev-secret-change-me';
+// In production a real secret is REQUIRED: shipping the dev default would make
+// session cookies forgeable by anyone who knows it. Fail closed if it's missing
+// in prod; allow a clearly-marked fallback only in dev.
+const isProd = process.env.NODE_ENV === 'production';
+const SECRET = process.env.SESSION_SECRET || (isProd ? '' : 'intellifix-dev-secret-change-me');
 export const SESSION_COOKIE = 'intellifix_session';
 
 const enc = new TextEncoder();
@@ -31,6 +35,11 @@ function stringFromB64url(s: string): string {
 }
 
 async function hmacKey(): Promise<CryptoKey> {
+  if (!SECRET) {
+    throw new Error(
+      'SESSION_SECRET is not set. Set it in the environment (e.g. `openssl rand -hex 32`) before running in production.',
+    );
+  }
   return crypto.subtle.importKey('raw', enc.encode(SECRET), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']);
 }
 

@@ -157,14 +157,14 @@ export default function LoginPage() {
               <div className="relative mb-2">
                 <input type={showPw ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)}
                   autoComplete={mode === 'login' ? 'current-password' : 'new-password'} className={`${inputCls} pr-10`} placeholder="••••••••" />
-                <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white">
-                  {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                <button type="button" onClick={() => setShowPw(!showPw)} aria-label={showPw ? 'Hide password' : 'Show password'} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white">
+                  {showPw ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
                 </button>
               </div>
               {(mode === 'register' || mode === 'reset') && password.length > 0 && (
                 <div className="mb-3">
                   <div className="h-1 rounded-full bg-white/10 overflow-hidden">
-                    <div className="h-full rounded-full transition-all" style={{ width: `${(st.score / 4) * 100}%`, background: st.color }} />
+                    <div className="h-full rounded-full transition-[width,background-color] duration-300" style={{ width: `${(st.score / 4) * 100}%`, background: st.color }} />
                   </div>
                   <p className="text-xxs mt-1" style={{ color: st.color }}>{st.label}</p>
                 </div>

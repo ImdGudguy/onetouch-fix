@@ -233,16 +233,16 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 const AI_REASONING_STEPS = [
-  { text: 'Correlating Windows event logs...', duration: 800 },
-  { text: 'Analyzing service dependency chain...', duration: 600 },
-  { text: 'Validating remediation safety protocols...', duration: 700 },
-  { text: 'Generating rollback checkpoint...', duration: 500 },
-  { text: 'Predicting anomaly spread patterns...', duration: 900 },
-  { text: 'Mapping affected system components...', duration: 650 },
-  { text: 'Calculating optimal execution window...', duration: 550 },
-  { text: 'Validating enterprise compliance requirements...', duration: 750 },
-  { text: 'Preparing secure execution environment...', duration: 600 },
-  { text: 'Initiating autonomous remediation sequence...', duration: 1000 },
+  { text: 'Correlating Windows event logs…', duration: 800 },
+  { text: 'Analyzing service dependency chain…', duration: 600 },
+  { text: 'Validating remediation safety protocols…', duration: 700 },
+  { text: 'Generating rollback checkpoint…', duration: 500 },
+  { text: 'Predicting anomaly spread patterns…', duration: 900 },
+  { text: 'Mapping affected system components…', duration: 650 },
+  { text: 'Calculating optimal execution window…', duration: 550 },
+  { text: 'Validating enterprise compliance requirements…', duration: 750 },
+  { text: 'Preparing secure execution environment…', duration: 600 },
+  { text: 'Initiating autonomous remediation sequence…', duration: 1000 },
 ];
 
 const EXECUTIVE_METRICS: ExecutiveMetric[] = [
@@ -580,7 +580,7 @@ function RemediationModuleCard({ card, onClick }: { card: RemediationCard; onCli
       onClick={onClick}
       whileHover={{ scale: 1.02, y: -4 }}
       whileTap={{ scale: 0.98 }}
-      className="relative w-full p-4 rounded-2xl bg-gradient-to-br from-white/[0.05] to-white/[0.02] border border-white/10 hover:border-neon-cyan/30 transition-all duration-300 overflow-hidden group"
+      className="relative w-full p-4 rounded-2xl bg-gradient-to-br from-white/[0.05] to-white/[0.02] border border-white/10 hover:border-neon-cyan/30 transition-colors duration-300 overflow-hidden group"
     >
       {/* Animated background */}
       <motion.div
@@ -652,7 +652,7 @@ function EnterpriseIssueCard({ issue, onFix }: { issue: Issue; onFix: () => void
   return (
     <motion.div
       whileHover={{ scale: 1.01 }}
-      className="p-4 sm:p-5 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:border-white/10 transition-all"
+      className="p-4 sm:p-5 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:border-white/10 transition-colors"
     >
       {/* Header row */}
       <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -791,7 +791,7 @@ function CollapsibleSidebar({ isCollapsed, onToggle, activeItem, onItemClick, de
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleClick}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${
                 isActive
                   ? 'bg-neon-cyan/10 text-neon-cyan border border-neon-cyan/20'
                   : 'text-white/60 hover:bg-white/5 hover:text-white'
@@ -1031,6 +1031,7 @@ function SettingsPanel({ isOpen, onClose, privacyMode, onPrivacyModeChange }: {
             </div>
             <input
               type="range" min="0" max="100" value={settings.aiSensitivity}
+              aria-label="AI sensitivity" aria-valuetext={`${settings.aiSensitivity}%`}
               onChange={(e) => setSettings({ ...settings, aiSensitivity: Number(e.target.value) })}
               className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
               style={{ background: `linear-gradient(to right, #00e5ff 0%, #00e5ff ${settings.aiSensitivity}%, rgba(255,255,255,0.1) ${settings.aiSensitivity}%, rgba(255,255,255,0.1) 100%)` }}
@@ -1046,8 +1047,9 @@ function SettingsPanel({ isOpen, onClose, privacyMode, onPrivacyModeChange }: {
               <p className="text-xs text-white/50">Hide sensitive system information from display</p>
             </div>
             <button
+              type="button" role="switch" aria-checked={privacyMode} aria-label="Privacy mode"
               onClick={() => onPrivacyModeChange(!privacyMode)}
-              className={`w-14 h-7 rounded-full transition-all duration-300 flex items-center px-1 ${privacyMode ? 'bg-neon-cyan' : 'bg-white/20'}`}
+              className={`w-14 h-7 rounded-full transition-colors duration-300 flex items-center px-1 ${privacyMode ? 'bg-neon-cyan' : 'bg-white/20'}`}
             >
               <motion.div
                 animate={{ x: privacyMode ? 28 : 0 }}
@@ -1088,6 +1090,7 @@ function SettingsPanel({ isOpen, onClose, privacyMode, onPrivacyModeChange }: {
                 <p className="text-xs text-white/50">{item.desc}</p>
               </div>
               <button
+                type="button" role="switch" aria-checked={!!settings[item.key as keyof typeof settings]} aria-label={item.label}
                 onClick={() => setSettings({ ...settings, [item.key]: !settings[item.key as keyof typeof settings] })}
                 className={`w-12 h-6 rounded-full transition-colors ${settings[item.key as keyof typeof settings] ? 'bg-neon-cyan' : 'bg-white/20'}`}
               >
@@ -1102,9 +1105,11 @@ function SettingsPanel({ isOpen, onClose, privacyMode, onPrivacyModeChange }: {
           <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-2">
             <p className="text-sm font-medium text-white">Change Password</p>
             <input type="password" value={curPw} onChange={(e) => setCurPw(e.target.value)} placeholder="Current password"
-              className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 outline-none focus:border-neon-cyan/50 text-sm" />
+              aria-label="Current password" autoComplete="current-password"
+              className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/50 focus-visible:outline-none focus-visible:border-neon-cyan/60 focus-visible:ring-1 focus-visible:ring-neon-cyan/50 text-sm" />
             <input type="password" value={newPw} onChange={(e) => setNewPw(e.target.value)} placeholder="New password (min 6)"
-              className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 outline-none focus:border-neon-cyan/50 text-sm" />
+              aria-label="New password" autoComplete="new-password"
+              className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/50 focus-visible:outline-none focus-visible:border-neon-cyan/60 focus-visible:ring-1 focus-visible:ring-neon-cyan/50 text-sm" />
             {pwMsg && <p className={`text-xs ${pwOk ? 'text-neon-green' : 'text-neon-red'}`}>{pwMsg}</p>}
             <button onClick={changePassword} disabled={!curPw || !newPw}
               className="w-full mt-1 px-4 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-50"
@@ -1284,12 +1289,13 @@ function ChatAssistant({ isOpen, onToggle, messages, onSendMessage, isTyping }: 
 
             <form onSubmit={handleSubmit} className="p-4 flex-shrink-0" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
               <div className="flex gap-2">
-                <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Describe your issue..."
-                  className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 outline-none focus:border-neon-cyan/50 transition-colors" />
-                <motion.button type="submit" disabled={!input.trim()} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Describe your issue…"
+                  aria-label="Describe your issue" autoComplete="off"
+                  className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/50 focus-visible:outline-none focus-visible:border-neon-cyan/60 focus-visible:ring-1 focus-visible:ring-neon-cyan/50 transition-colors" />
+                <motion.button type="submit" disabled={!input.trim()} aria-label="Send message" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
                   className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{ background: input.trim() ? 'linear-gradient(135deg, #00e5ff 0%, #a855f7 100%)' : 'rgba(255,255,255,0.08)', cursor: input.trim() ? 'pointer' : 'not-allowed' }}>
-                  <Send className="w-4 h-4 text-white" />
+                  <Send className="w-4 h-4 text-white" aria-hidden="true" />
                 </motion.button>
               </div>
             </form>
@@ -1935,7 +1941,7 @@ export default function IntelliFixApp() {
       const msg = input.value.trim();
       if (!msg) return;
 
-      responseDiv.textContent = 'Thinking...';
+      responseDiv.textContent = 'Thinking…';
       btn.setAttribute('disabled', 'true');
 
       try {
@@ -2089,7 +2095,7 @@ export default function IntelliFixApp() {
                   whileHover={{ scale: 1.02, boxShadow: '0 0 30px rgba(0, 229, 255, 0.5)' }}
                   whileTap={{ scale: 0.98 }}
                   onClick={executeConfirmedFix}
-                  className="flex-1 px-6 py-3 rounded-xl bg-gradient-to-r from-neon-cyan to-neon-purple text-white font-semibold transition-all"
+                  className="flex-1 px-6 py-3 rounded-xl bg-gradient-to-r from-neon-cyan to-neon-purple text-white font-semibold transition-colors"
                 >
                   Yes, Execute Fix
                 </motion.button>
@@ -2154,7 +2160,7 @@ export default function IntelliFixApp() {
 
               {/* Title */}
               <h3 className="text-xl font-bold text-white mb-2">Autonomous Remediation</h3>
-              <p className="text-sm text-white/60 mb-6">{fixStatus}</p>
+              <p className="text-sm text-white/60 mb-6" role="status" aria-live="polite">{fixStatus}</p>
 
               {/* Progress bar */}
               <div className="relative w-full h-3 bg-white/10 rounded-full overflow-hidden mb-4">
@@ -2196,7 +2202,7 @@ export default function IntelliFixApp() {
   // RENDER
   // ============================================================================
   return (
-    <div className="min-h-screen h-screen flex overflow-hidden" style={{ background: 'linear-gradient(135deg, #07070d 0%, #0a0a12 50%, #07070d 100%)' }}>
+    <div className="min-h-[100dvh] h-[100dvh] flex overflow-hidden" style={{ background: 'linear-gradient(135deg, #07070d 0%, #0a0a12 50%, #07070d 100%)' }}>
       {/* Background effects */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="fx-aurora" />
@@ -2225,8 +2231,8 @@ export default function IntelliFixApp() {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
         <header className="relative z-30 flex-shrink-0 backdrop-blur-xl border-b border-white/5" style={{ background: 'rgba(10, 10, 18, 0.85)' }}>
-          <div className="px-6 py-4">
-            <div className="flex items-center justify-between">
+          <div className="px-4 sm:px-6 py-4">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
               {/* Left - Device info */}
               <div className="flex items-center gap-4">
                 {/* Device Selector Dropdown */}
@@ -2339,7 +2345,7 @@ export default function IntelliFixApp() {
             </div>
 
             {/* Telemetry Row */}
-            <div className="flex items-center gap-4 mt-4">
+            <div className="flex flex-wrap items-center gap-3 mt-4">
               <TelemetryCard metric="CPU" value={metrics.cpu} unit="%" privacyMode={privacyMode} />
               <TelemetryCard metric="RAM" value={metrics.ram} unit="%" privacyMode={privacyMode} />
               <TelemetryCard metric="DISK" value={metrics.disk} unit="%" privacyMode={privacyMode} />
@@ -2349,12 +2355,12 @@ export default function IntelliFixApp() {
         </header>
 
         {/* Main Content Area */}
-        <main className="relative z-10 flex-1 overflow-y-auto p-6">
+        <main className="relative z-10 flex-1 overflow-y-auto p-4 sm:p-6">
           {/* Dashboard View */}
           {activeNavItem === 'dashboard' && (
             <div className="grid grid-cols-12 gap-6">
               {/* Left Column */}
-              <div className="col-span-8 space-y-6">
+              <div className="col-span-12 xl:col-span-8 space-y-6">
                 {/* AI Core + AI Reasoning */}
                 <div className="holo rounded-2xl p-6">
                   <div className="flex items-center justify-between mb-4">
@@ -2389,7 +2395,7 @@ export default function IntelliFixApp() {
               </div>
 
               {/* Right Column */}
-              <div className="col-span-4 space-y-6">
+              <div className="col-span-12 xl:col-span-4 space-y-6">
                 {/* Detected Issues */}
                 <div className="holo rounded-2xl p-5">
                   <div className="flex items-center justify-between mb-4">
@@ -2600,7 +2606,7 @@ export default function IntelliFixApp() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {remediationCards.map((card) => (
                     <motion.div
                       key={card.id}
@@ -2724,7 +2730,7 @@ export default function IntelliFixApp() {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                   {EXECUTIVE_METRICS.map((metric, i) => (
                     <div key={i} className="p-5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
                       <div className="flex items-center gap-2 mb-3" style={{ color: metric.color }}>
@@ -2923,7 +2929,7 @@ export default function IntelliFixApp() {
                     System Configuration
                   </h3>
 
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
                       <div className="flex items-center gap-2 mb-2">
                         <Radio className="w-4 h-4 text-neon-green" />

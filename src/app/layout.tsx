@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import CookieConsent from '@/components/CookieConsent'
@@ -21,6 +21,17 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: 'IntelliFix AI - Enterprise Device Intelligence Platform',
   description: 'AI-powered endpoint management and autonomous remediation',
+}
+
+// Cross-browser + mobile: real viewport (never disables zoom), dark color-scheme
+// so native controls/scrollbars render dark, theme-color for mobile browser chrome,
+// and viewport-fit=cover for notched devices.
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  colorScheme: 'dark',
+  themeColor: '#0a0a12',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
