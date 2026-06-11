@@ -915,6 +915,62 @@ function TelemetryCard({ metric, value, unit, privacyMode }: { metric: string; v
   );
 }
 
+// Premium KPI / executive metric card — glass surface, per-card accent glow,
+// tabular value, signed delta pill. Pure Tailwind + Framer Motion + Lucide.
+function KpiCard({ label, value, change, icon, color, index = 0 }: {
+  label: string; value: string; change: number; icon: React.ReactNode; color: string; index?: number;
+}) {
+  const up = change >= 0;
+  const DeltaIcon = change === 0 ? Minus : up ? ArrowUpRight : ArrowDownRight;
+  const deltaColor = change === 0 ? '#94a3b8' : up ? '#10b981' : '#ef4444';
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, delay: index * 0.05, ease: [0.2, 0.7, 0.2, 1] }}
+      whileHover={{ y: -3 }}
+      className="group relative overflow-hidden rounded-2xl bg-white/[0.03] border border-white/[0.06] p-4 backdrop-blur-sm transition-colors duration-200"
+      style={{ ['--kpi' as any]: color }}
+    >
+      {/* accent glow that intensifies on hover */}
+      <div
+        className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-20 blur-2xl transition-opacity duration-300 group-hover:opacity-40"
+        style={{ background: color }}
+      />
+      <div className="relative flex items-start justify-between gap-2">
+        <span
+          className="flex h-9 w-9 items-center justify-center rounded-xl border"
+          style={{ color, background: `${color}1a`, borderColor: `${color}33` }}
+        >
+          {icon}
+        </span>
+        <span
+          className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums"
+          style={{ color: deltaColor, background: `${deltaColor}1a` }}
+        >
+          <DeltaIcon className="h-3 w-3" aria-hidden="true" />
+          {up && change !== 0 ? '+' : ''}{change}%
+        </span>
+      </div>
+      <div className="relative mt-3 text-2xl font-extrabold text-white tabular-nums tracking-tight">
+        <CountUp text={value} />
+      </div>
+      <div className="relative mt-0.5 text-xs text-white/60">{label}</div>
+      {/* animated accent bar grounds the card */}
+      <div className="relative mt-3 h-1 overflow-hidden rounded-full bg-white/[0.06]">
+        <motion.div
+          className="h-full rounded-full"
+          initial={{ width: '0%' }}
+          animate={{ width: `${Math.min(Math.abs(change) * 6 + 40, 100)}%` }}
+          transition={{ duration: 0.8, delay: index * 0.05 + 0.2, ease: 'easeOut' }}
+          style={{ background: `linear-gradient(90deg, ${color}, ${color}66)` }}
+        />
+      </div>
+    </motion.div>
+  );
+}
+
 // Settings Panel
 function SettingsPanel({ isOpen, onClose, privacyMode, onPrivacyModeChange }: {
   isOpen: boolean;
@@ -2372,22 +2428,10 @@ export default function IntelliFixApp() {
                   <h2 className="font-semibold text-white">Executive Metrics</h2>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  {EXECUTIVE_METRICS.map((metric, i) => {
-                    const Icon = metric.icon;
-                    return (
-                      <div key={i} className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                        <div className="flex items-center gap-2 mb-2" style={{ color: metric.color }}>
-                          {Icon}
-                          <span className="text-xs text-white/50">{metric.label}</span>
-                        </div>
-                        <div className="text-2xl font-extrabold text-white tnum"><CountUp text={metric.value} /></div>
-                        <div className="flex items-center gap-1 text-xs text-neon-green mt-1">
-                          <ArrowUpRight className="w-3 h-3" />
-                          <span>+{metric.change}%</span>
-                        </div>
-                      </div>
-                    );
-                  })}
+                  {EXECUTIVE_METRICS.map((metric, i) => (
+                    <KpiCard key={i} index={i} label={metric.label} value={metric.value}
+                      change={metric.change} icon={metric.icon} color={metric.color} />
+                  ))}
                 </div>
               </div>
 
