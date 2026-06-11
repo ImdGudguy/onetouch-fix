@@ -15,7 +15,7 @@ import {
   Database, Cpu as CpuIcon, HardDrive as HardDriveIcon, Clock as ClockIcon,
   Globe, Download, Cog as CogIcon, FileText, Wifi, LogOut
 } from 'lucide-react';
-import { ResponsiveContainer, AreaChart, Area, XAxis, Tooltip } from 'recharts';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
 // ============================================================================
 // API & WEBSOCKET CONFIG
@@ -619,7 +619,7 @@ function RemediationModuleCard({ card, onClick }: { card: RemediationCard; onCli
         <p className="text-[11px] text-white/50 mb-3 leading-snug line-clamp-2">{card.description}</p>
 
         {/* Metadata */}
-        <div className="flex items-center gap-2 text-[10px] text-white/40">
+        <div className="flex items-center gap-2 text-[10px] text-white/60">
           <div className="flex items-center gap-0.5">
             <Clock className="w-3 h-3" />
             <span>{card.duration}</span>
@@ -660,7 +660,7 @@ function EnterpriseIssueCard({ issue, onFix }: { issue: Issue; onFix: () => void
           <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: config.color }} />
           {config.label}
         </span>
-        <span className="text-xs text-white/40 truncate max-w-[100px]">{issue.category}</span>
+        <span className="text-xs text-white/60 truncate max-w-[100px]">{issue.category}</span>
         <div className="ml-auto flex items-center gap-1 px-2 py-0.5 rounded-lg bg-neon-purple/10 flex-shrink-0">
           <Brain className="w-3 h-3 text-neon-purple" />
           <span className="text-xs font-mono text-neon-purple">{issue.confidence}%</span>
@@ -672,7 +672,7 @@ function EnterpriseIssueCard({ issue, onFix }: { issue: Issue; onFix: () => void
       {/* AI Analysis */}
       {issue.rootCause && (
         <div className="mb-3 p-3 rounded-lg bg-white/[0.02] border border-white/5">
-          <div className="text-xs text-white/40 mb-1">Root Cause Analysis</div>
+          <div className="text-xs text-white/60 mb-1">Root Cause Analysis</div>
           <div className="text-xs text-white/70">{issue.rootCause}</div>
         </div>
       )}
@@ -691,7 +691,7 @@ function EnterpriseIssueCard({ issue, onFix }: { issue: Issue; onFix: () => void
       {/* Affected Services */}
       {issue.affectedServices && issue.affectedServices.length > 0 && (
         <div className="mb-4 flex items-center gap-2">
-          <Layers className="w-3 h-3 text-white/40" />
+          <Layers className="w-3 h-3 text-white/60" />
           <div className="flex gap-1 flex-wrap">
             {issue.affectedServices.map((service, i) => (
               <span key={i} className="px-2 py-0.5 rounded text-xxs bg-white/5 text-white/50">{service}</span>
@@ -713,7 +713,7 @@ function EnterpriseIssueCard({ issue, onFix }: { issue: Issue; onFix: () => void
 
       {/* Action */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-3 pt-3 border-t border-white/5">
-        <span className="text-xs text-white/40 truncate">Detected by {issue.detectedBy} • {issue.timestamp}</span>
+        <span className="text-xs text-white/60 truncate">Detected by {issue.detectedBy} • {issue.timestamp}</span>
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -845,7 +845,7 @@ function CollapsibleSidebar({ isCollapsed, onToggle, activeItem, onItemClick, de
                 className="overflow-hidden"
               >
                 <p className="text-sm font-medium text-white truncate">{getDisplayName()}</p>
-                <p className="text-xxs text-white/40 truncate">Endpoint Admin</p>
+                <p className="text-xxs text-white/60 truncate">Endpoint Admin</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -879,7 +879,7 @@ function HealthScoreGauge({ score, label }: { score: number; label: string }) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-2xl font-bold text-white">{score}</span>
-        <span className="text-xxs text-white/40 uppercase tracking-wider">{label}</span>
+        <span className="text-xxs text-white/60 uppercase tracking-wider">{label}</span>
       </div>
     </div>
   );
@@ -909,7 +909,7 @@ function TelemetryCard({ metric, value, unit, privacyMode }: { metric: string; v
         />
       </div>
       <span className="text-sm font-mono font-bold text-white w-12 text-right tabular-nums">
-        {privacyMode ? '•••' : `${Math.round(value)}`}<span className="text-xs text-white/40">{privacyMode ? '' : unit}</span>
+        {privacyMode ? '•••' : `${Math.round(value)}`}<span className="text-xs text-white/60">{privacyMode ? '' : unit}</span>
       </span>
     </div>
   );
@@ -1060,7 +1060,7 @@ function SettingsPanel({ isOpen, onClose, privacyMode, onPrivacyModeChange }: {
       </div>
 
       <div className="px-6 py-4 border-t border-white/10">
-        <p className="text-xs text-white/40 text-center">IntelliFix AI v1.0.0 • Developed by Naveen Singh</p>
+        <p className="text-xs text-white/60 text-center">IntelliFix AI v1.0.0 • Developed by Naveen Singh</p>
       </div>
     </motion.div>
   );
@@ -1093,7 +1093,7 @@ function NotificationsPanel({ isOpen, onClose, notifications }: { isOpen: boolea
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-sm font-medium text-white">{n.title}</span>
-                  <span className="text-xs text-white/40">{formatTime(n.timestamp)}</span>
+                  <span className="text-xs text-white/60">{formatTime(n.timestamp)}</span>
                 </div>
                 <p className="text-xs text-white/60">{n.message}</p>
               </div>
@@ -1209,7 +1209,7 @@ function ChatAssistant({ isOpen, onToggle, messages, onSendMessage, isTyping }: 
                     className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`px-4 py-3 rounded-2xl max-w-[85%] backdrop-blur-sm ${msg.role === 'user' ? 'bg-neon-cyan/10 border border-neon-cyan/20' : 'bg-white/5 border border-white/10'}`}>
                       <p className="text-sm text-white/90 whitespace-pre-wrap">{msg.content}</p>
-                      <span className="text-xxs text-white/30 mt-1 block">{formatTime(msg.timestamp)}</span>
+                      <span className="text-xxs text-white/50 mt-1 block">{formatTime(msg.timestamp)}</span>
                     </div>
                   </motion.div>
                 ))}
@@ -1276,7 +1276,7 @@ function Meter({ label, value }: { label: string; value: number }) {
   return (
     <div className="w-24">
       <div className="flex items-center justify-between mb-1">
-        <span className="text-xxs text-white/40">{label}</span>
+        <span className="text-xxs text-white/60">{label}</span>
         <span className="text-xs font-mono text-white tnum">{Math.round(value)}%</span>
       </div>
       <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
@@ -1302,13 +1302,19 @@ function FleetTrendChart() {
             <stop offset="100%" stopColor="#a855f7" stopOpacity={0.02} />
           </linearGradient>
         </defs>
-        <XAxis dataKey="day" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
+        {/* Subtle gridlines so they read as scale, not chrome (§10 gridline-subtle) */}
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+        <XAxis dataKey="day" tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} dy={4} />
+        {/* Labeled, bounded Y-axis with units (§10 axis-labels) */}
+        <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} width={32}
+          tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false}
+          tickFormatter={(v) => `${v}%`} />
         <Tooltip
           contentStyle={{ background: 'rgba(10,10,18,0.95)', border: '1px solid rgba(0,229,255,0.25)', borderRadius: 10, fontSize: 12 }}
-          labelStyle={{ color: '#00e5ff' }} cursor={{ stroke: 'rgba(0,229,255,0.2)' }}
-        />
-        <Area type="monotone" dataKey="v" name="Health" stroke="#00e5ff" strokeWidth={2} fill="url(#trendFill)"
-          dot={{ r: 2, fill: '#00e5ff' }} activeDot={{ r: 4 }} />
+          labelStyle={{ color: '#00e5ff', fontWeight: 600 }} cursor={{ stroke: 'rgba(0,229,255,0.25)', strokeWidth: 1 }}
+          formatter={(v: number) => [`${v}%`, 'Fleet health']} />
+        <Area type="monotone" dataKey="v" name="Health" stroke="#00e5ff" strokeWidth={2.5} fill="url(#trendFill)"
+          dot={{ r: 2, fill: '#00e5ff' }} activeDot={{ r: 5, stroke: '#0a0a12', strokeWidth: 2 }} />
       </AreaChart>
     </ResponsiveContainer>
   );
@@ -1329,7 +1335,7 @@ function ComplianceView({ device }: { device: any }) {
 
   if (!device) {
     return (
-      <div className="holo rounded-2xl p-12 text-center text-white/40">
+      <div className="holo rounded-2xl p-12 text-center text-white/60">
         <FileCheck className="w-16 h-16 mx-auto mb-4 text-neon-green/40" />
         <p className="text-lg text-white/70">No agent connected</p>
         <p className="text-sm">Compliance scan appears once the IntelliFix Agent reports in.</p>
@@ -1342,7 +1348,7 @@ function ComplianceView({ device }: { device: any }) {
       <div className="flex items-center gap-3">
         <FileCheck className="w-6 h-6 text-neon-green" />
         <h2 className="text-xl font-bold text-white">Compliance Dashboard</h2>
-        <span className="text-xs text-white/40">{device.hostname}</span>
+        <span className="text-xs text-white/60">{device.hostname}</span>
         <button className="ml-auto px-4 py-2 rounded-lg bg-neon-green/15 border border-neon-green/30 text-neon-green text-sm font-medium flex items-center gap-2 hover:bg-neon-green/25 transition-colors">
           <Download className="w-4 h-4" /> Export Report
         </button>
@@ -1351,7 +1357,7 @@ function ComplianceView({ device }: { device: any }) {
       <div className="grid grid-cols-12 gap-6">
         {/* Score ring */}
         <div className="col-span-12 lg:col-span-3 holo rounded-2xl p-6 flex flex-col items-center justify-center">
-          <div className="text-xxs uppercase tracking-widest text-white/40 mb-3">Compliance Score</div>
+          <div className="text-xxs uppercase tracking-widest text-white/60 mb-3">Compliance Score</div>
           <div className="relative w-32 h-32">
             <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
               <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="8" />
@@ -1387,14 +1393,14 @@ function ComplianceView({ device }: { device: any }) {
       {/* Controls table */}
       <div className="holo rounded-2xl p-6">
         <h3 className="font-semibold text-white mb-4">Security Controls</h3>
-        <div className="grid grid-cols-12 gap-2 px-3 pb-2 text-xxs uppercase tracking-wider text-white/30 border-b border-white/5">
+        <div className="grid grid-cols-12 gap-2 px-3 pb-2 text-xxs uppercase tracking-wider text-white/50 border-b border-white/5">
           <div className="col-span-2">ID</div><div className="col-span-4">Control</div>
           <div className="col-span-2">Category</div><div className="col-span-2">Standard</div><div className="col-span-2">Status</div>
         </div>
         {controls.map((c) => (
           <div key={c.id} className="grid grid-cols-12 gap-2 px-3 py-3 items-center border-b border-white/[0.03] hover:bg-white/[0.02] rounded-lg">
-            <div className="col-span-2 font-mono text-xs text-white/40">{c.id}</div>
-            <div className="col-span-4 text-sm text-white">{c.name}<div className="text-xxs text-white/30">{c.detail}</div></div>
+            <div className="col-span-2 font-mono text-xs text-white/60">{c.id}</div>
+            <div className="col-span-4 text-sm text-white">{c.name}<div className="text-xxs text-white/50">{c.detail}</div></div>
             <div className="col-span-2 text-xs text-white/60">{c.category}</div>
             <div className="col-span-2"><span className="px-2 py-0.5 rounded bg-neon-cyan/10 text-neon-cyan text-xxs">{c.standard}</span></div>
             <div className="col-span-2">
@@ -1419,15 +1425,15 @@ function EventStream({ events }: { events: any[] }) {
       <div className="flex items-center gap-2 mb-3">
         <Terminal className="w-4 h-4 text-neon-cyan" />
         <h3 className="font-semibold text-white">Live System Event Stream</h3>
-        <span className="ml-auto text-xxs text-white/40">{events.length} events · last 6h</span>
+        <span className="ml-auto text-xxs text-white/60">{events.length} events · last 6h</span>
       </div>
       <div className="font-mono text-xs space-y-1 max-h-[420px] overflow-y-auto pr-1">
-        {events.length === 0 && <div className="text-white/30">No recent events.</div>}
+        {events.length === 0 && <div className="text-white/50">No recent events.</div>}
         {events.map((e, i) => (
           <div key={i} className="flex gap-3 py-1 border-b border-white/[0.03]">
-            <span className="text-white/30 shrink-0">{new Date(e.timeCreated).toLocaleTimeString()}</span>
+            <span className="text-white/50 shrink-0">{new Date(e.timeCreated).toLocaleTimeString()}</span>
             <span className="shrink-0 w-16 font-semibold" style={{ color: levelColor(e.level) }}>{e.level}</span>
-            <span className="text-white/40 shrink-0 w-28 truncate">{e.source}</span>
+            <span className="text-white/60 shrink-0 w-28 truncate">{e.source}</span>
             <span className="text-white/70 truncate">{e.message || `Event ${e.eventId}`}</span>
           </div>
         ))}
@@ -1483,7 +1489,7 @@ function AgentInstallModal({ onClose }: { onClose: () => void }) {
               {enroll?.oneLiner ?? 'Loading enrollment command…'}
             </div>
             {enroll && (
-              <p className="text-xxs text-white/40 mb-2">Single-use enrollment token, valid for {enroll.expiresInMinutes} minutes. The agent exchanges it for its own device token on first run.</p>
+              <p className="text-xxs text-white/60 mb-2">Single-use enrollment token, valid for {enroll.expiresInMinutes} minutes. The agent exchanges it for its own device token on first run.</p>
             )}
             <button onClick={copy} disabled={!enroll}
               className="w-full px-4 py-2 rounded-lg text-sm font-bold text-white mb-4 disabled:opacity-50"
@@ -1506,7 +1512,7 @@ function AgentInstallModal({ onClose }: { onClose: () => void }) {
             <Download className="w-4 h-4" /> Download installer (.exe)
           </a>
         </div>
-        <p className="text-center text-xxs text-white/30 mt-3">
+        <p className="text-center text-xxs text-white/50 mt-3">
           Prefer manual? See <a href="https://github.com/ImdGudguy/onetouch-fix/blob/main/AGENT.md" target="_blank" rel="noreferrer" className="hover:text-white/60 underline">AGENT.md</a>.
         </p>
       </motion.div>
@@ -1982,17 +1988,17 @@ export default function IntelliFixApp() {
               >
                 <div className="text-center">
                   <div className="text-2xl font-bold text-white">{pendingFix.card?.confidence || 90}%</div>
-                  <div className="text-xs text-white/40">AI Confidence</div>
+                  <div className="text-xs text-white/60">AI Confidence</div>
                 </div>
                 <div className="w-px h-8 bg-white/20" />
                 <div className="text-center">
                   <div className="text-2xl font-bold text-white">{pendingFix.card?.duration || '45s'}</div>
-                  <div className="text-xs text-white/40">Est. Time</div>
+                  <div className="text-xs text-white/60">Est. Time</div>
                 </div>
                 <div className="w-px h-8 bg-white/20" />
                 <div className="text-center">
                   <div className="text-2xl font-bold text-neon-green">{pendingFix.card?.successRate || 95}%</div>
-                  <div className="text-xs text-white/40">Success Rate</div>
+                  <div className="text-xs text-white/60">Success Rate</div>
                 </div>
               </motion.div>
 
@@ -2107,7 +2113,7 @@ export default function IntelliFixApp() {
               {/* Percentage */}
               <div className="flex items-center justify-center gap-2">
                 <span className="text-2xl font-bold text-neon-cyan">{Math.round(fixProgress)}%</span>
-                <span className="text-sm text-white/40">Complete</span>
+                <span className="text-sm text-white/60">Complete</span>
               </div>
 
               {/* Status indicators */}
@@ -2180,20 +2186,20 @@ export default function IntelliFixApp() {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
+                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60 pointer-events-none" />
                 </div>
 
                 {/* Fleet Summary Badge */}
                 {fleetSummary && fleetSummary.total > 1 && (
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10">
-                    <span className="text-xs text-white/40">Fleet:</span>
+                    <span className="text-xs text-white/60">Fleet:</span>
                     <span className="text-xs text-neon-green font-medium">{fleetSummary.online} Online</span>
-                    <span className="text-xs text-white/20">|</span>
-                    <span className="text-xs text-white/40">{fleetSummary.offline} Offline</span>
+                    <span className="text-xs text-white/40">|</span>
+                    <span className="text-xs text-white/60">{fleetSummary.offline} Offline</span>
                   </div>
                 )}
 
-                <div className="flex items-center gap-2 text-sm text-white/40">
+                <div className="flex items-center gap-2 text-sm text-white/60">
                   <span className="w-2 h-2 rounded-full" style={{ backgroundColor: isDeviceOnline ? '#10b981' : '#ef4444' }} />
                   <span style={{ color: isDeviceOnline ? '#10b981' : '#ef4444' }}>{isDeviceOnline ? 'Online' : 'Offline'}</span>
                   {!isLoading && devices.length === 0 && (
@@ -2316,7 +2322,7 @@ export default function IntelliFixApp() {
                       <Zap className="w-4 h-4 text-neon-cyan" />
                       <h2 className="font-semibold text-white">AI Remediation Modules</h2>
                     </div>
-                    <span className="text-xs text-white/40">Select a module to begin autonomous remediation</span>
+                    <span className="text-xs text-white/60">Select a module to begin autonomous remediation</span>
                   </div>
                   <div className="grid grid-cols-5 gap-4">
                     {remediationCards.map((card) => (
@@ -2350,10 +2356,10 @@ export default function IntelliFixApp() {
                     openFixConfirmation(actionType, card);
                   }} />
                   )) : (
-                    <div className="text-center py-8 text-white/40">
+                    <div className="text-center py-8 text-white/60">
                       <CheckCircle2 className="w-12 h-12 mx-auto mb-2 text-neon-green/50" />
                       <p className="text-sm">No issues detected</p>
-                      <p className="text-xs text-white/30 mt-1">All systems healthy</p>
+                      <p className="text-xs text-white/50 mt-1">All systems healthy</p>
                     </div>
                   )}
                 </div>
@@ -2404,10 +2410,10 @@ export default function IntelliFixApp() {
                         )}
                         <span className="text-white/70">{item.actionType || 'Unknown Fix'}</span>
                       </div>
-                      <span className="text-white/30 text-xs">{item.completedAt ? new Date(item.completedAt).toLocaleString() : 'Pending'}</span>
+                      <span className="text-white/50 text-xs">{item.completedAt ? new Date(item.completedAt).toLocaleString() : 'Pending'}</span>
                     </div>
                   )) : (
-                    <div className="text-center py-4 text-white/30 text-sm">
+                    <div className="text-center py-4 text-white/50 text-sm">
                       <History className="w-8 h-8 mx-auto mb-2 opacity-50" />
                       <p>No remediation history yet</p>
                     </div>
@@ -2417,7 +2423,7 @@ export default function IntelliFixApp() {
 
               {/* Developed By */}
               <div className="text-center pb-4">
-                <p className="text-xxs text-white/30">Developed by</p>
+                <p className="text-xxs text-white/50">Developed by</p>
                 <p className="text-xs font-semibold text-white/50">Naveen Singh</p>
               </div>
             </div>
@@ -2451,7 +2457,7 @@ export default function IntelliFixApp() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                           <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${device.isOnline ? 'bg-neon-green/20' : 'bg-white/5'}`}>
-                            <Server className={`w-6 h-6 ${device.isOnline ? 'text-neon-green' : 'text-white/40'}`} />
+                            <Server className={`w-6 h-6 ${device.isOnline ? 'text-neon-green' : 'text-white/60'}`} />
                           </div>
                           <div>
                             <h3 className="text-lg font-semibold text-white">{device.hostname}</h3>
@@ -2468,7 +2474,7 @@ export default function IntelliFixApp() {
                           )}
                           <div className="flex items-center gap-2">
                             <span className={`w-2.5 h-2.5 rounded-full ${device.isOnline ? 'bg-neon-green' : 'bg-white/20'}`} />
-                            <span className={`text-sm font-medium ${device.isOnline ? 'text-neon-green' : 'text-white/40'}`}>
+                            <span className={`text-sm font-medium ${device.isOnline ? 'text-neon-green' : 'text-white/60'}`}>
                               {device.isOnline ? 'Online' : 'Offline'}
                             </span>
                           </div>
@@ -2518,7 +2524,7 @@ export default function IntelliFixApp() {
                             </span>
                           </div>
                           <p className="text-sm text-white/60 mb-3">{issue.description}</p>
-                          <div className="flex items-center gap-4 text-xs text-white/40">
+                          <div className="flex items-center gap-4 text-xs text-white/60">
                             <span>Detected: {issue.timestamp}</span>
                             <span>Confidence: {issue.confidence}%</span>
                             <span>By: {issue.detectedBy}</span>
@@ -2530,7 +2536,7 @@ export default function IntelliFixApp() {
                     <div className="text-center py-12">
                       <CheckCircle2 className="w-16 h-16 mx-auto mb-4 text-neon-green/50" />
                       <p className="text-lg text-white/70">All Clear</p>
-                      <p className="text-sm text-white/40">No incidents detected in your fleet</p>
+                      <p className="text-sm text-white/60">No incidents detected in your fleet</p>
                     </div>
                   )}
                 </div>
@@ -2563,7 +2569,7 @@ export default function IntelliFixApp() {
                       <h3 className="font-semibold text-white mb-2">{card.label}</h3>
                       <p className="text-sm text-white/50 mb-4">{card.description}</p>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-white/40">{card.duration}</span>
+                        <span className="text-xs text-white/60">{card.duration}</span>
                         <button
                           onClick={() => openFixConfirmation(card.id, card)}
                           className="px-4 py-2 rounded-lg bg-neon-cyan/20 text-neon-cyan text-sm font-medium hover:bg-neon-cyan/30 transition-colors"
@@ -2590,12 +2596,12 @@ export default function IntelliFixApp() {
                           )}
                           <span className="text-white/70">{item.actionType || 'Remediation'}</span>
                         </div>
-                        <span className="text-sm text-white/40">
+                        <span className="text-sm text-white/60">
                           {item.completedAt ? new Date(item.completedAt).toLocaleString() : new Date(item.createdAt).toLocaleString()}
                         </span>
                       </div>
                     )) : (
-                      <p className="text-center text-white/40 py-8">No remediation history yet</p>
+                      <p className="text-center text-white/60 py-8">No remediation history yet</p>
                     )}
                   </div>
                 </div>
@@ -2642,15 +2648,15 @@ export default function IntelliFixApp() {
                     <div className="flex items-center gap-4">
                       <div className="text-center">
                         <div className="text-2xl font-bold text-neon-cyan">+5%</div>
-                        <div className="text-xs text-white/40">Health Trend</div>
+                        <div className="text-xs text-white/60">Health Trend</div>
                       </div>
                       <div className="text-center">
                         <div className="text-2xl font-bold text-neon-green">-12%</div>
-                        <div className="text-xs text-white/40">CPU Usage</div>
+                        <div className="text-xs text-white/60">CPU Usage</div>
                       </div>
                       <div className="text-center">
                         <div className="text-2xl font-bold text-neon-purple">-8%</div>
-                        <div className="text-xs text-white/40">RAM Usage</div>
+                        <div className="text-xs text-white/60">RAM Usage</div>
                       </div>
                     </div>
                   </div>
@@ -2709,7 +2715,7 @@ export default function IntelliFixApp() {
                         </div>
                         <div className="text-right">
                           <span className="text-lg font-bold text-red-400">78%</span>
-                          <p className="text-xs text-white/40">confidence</p>
+                          <p className="text-xs text-white/60">confidence</p>
                         </div>
                       </div>
                       <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-orange-500/10 to-transparent border border-orange-500/20">
@@ -2722,7 +2728,7 @@ export default function IntelliFixApp() {
                         </div>
                         <div className="text-right">
                           <span className="text-lg font-bold text-orange-400">85%</span>
-                          <p className="text-xs text-white/40">confidence</p>
+                          <p className="text-xs text-white/60">confidence</p>
                         </div>
                       </div>
                       <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-yellow-500/10 to-transparent border border-yellow-500/20">
@@ -2735,7 +2741,7 @@ export default function IntelliFixApp() {
                         </div>
                         <div className="text-right">
                           <span className="text-lg font-bold text-yellow-400">72%</span>
-                          <p className="text-xs text-white/40">confidence</p>
+                          <p className="text-xs text-white/60">confidence</p>
                         </div>
                       </div>
                       <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-blue-500/10 to-transparent border border-blue-500/20">
@@ -2748,7 +2754,7 @@ export default function IntelliFixApp() {
                         </div>
                         <div className="text-right">
                           <span className="text-lg font-bold text-blue-400">68%</span>
-                          <p className="text-xs text-white/40">confidence</p>
+                          <p className="text-xs text-white/60">confidence</p>
                         </div>
                       </div>
                     </div>
@@ -2783,7 +2789,7 @@ export default function IntelliFixApp() {
                             <span className="text-sm text-white/70">{item.count}</span>
                             {item.trend === 'up' && <ArrowUpRight className="w-4 h-4 text-red-400" />}
                             {item.trend === 'down' && <ArrowDownRight className="w-4 h-4 text-neon-green" />}
-                            {item.trend === 'stable' && <Minus className="w-4 h-4 text-white/40" />}
+                            {item.trend === 'stable' && <Minus className="w-4 h-4 text-white/60" />}
                           </div>
                         </div>
                       ))}
@@ -2976,7 +2982,7 @@ export default function IntelliFixApp() {
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-white/70">Version 1.0.0</p>
-                      <p className="text-xs text-white/40">© 2026 Naveen Singh</p>
+                      <p className="text-xs text-white/60">© 2026 Naveen Singh</p>
                     </div>
                   </div>
                 </div>

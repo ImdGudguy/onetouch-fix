@@ -35,6 +35,11 @@ body {
   border-radius: 4px;
 }
 
+::selection {
+  background: rgba(0, 229, 255, 0.28);
+  color: #ffffff;
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
